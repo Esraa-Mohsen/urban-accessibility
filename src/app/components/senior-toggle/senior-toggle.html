@@ -1,0 +1,7 @@
+<button 
+  (click)="dataService.toggleSeniorMode()"
+  [ngClass]="dataService.seniorMode() ? 'bg-blue-600 border-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.4)] text-white' : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white'"
+  class="flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 backdrop-blur-sm">
+  <span class="text-xl leading-none">👓</span>
+  <span class="font-medium text-sm">Senior Mode</span>
+</button>

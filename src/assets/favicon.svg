@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Dark background -->
+  <rect width="32" height="32" rx="8" fill="#0B0F1A"/>
+  <!-- Map pin body -->
+  <path d="M16 4C12.134 4 9 7.134 9 11c0 5.25 7 15 7 15s7-9.75 7-15c0-3.866-3.134-7-7-7z" fill="#10b981"/>
+  <!-- Inner circle -->
+  <circle cx="16" cy="11" r="3" fill="#0B0F1A"/>
+  <!-- Small city building hints at bottom -->
+  <rect x="7" y="26" width="4" height="3" rx="1" fill="#3b82f6" opacity="0.7"/>
+  <rect x="14" y="24" width="4" height="5" rx="1" fill="#3b82f6" opacity="0.7"/>
+  <rect x="21" y="26" width="4" height="3" rx="1" fill="#3b82f6" opacity="0.7"/>
+</svg>

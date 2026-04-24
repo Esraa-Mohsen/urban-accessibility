@@ -1,0 +1,65 @@
+<div class="glass-panel p-6 relative overflow-hidden">
+  <!-- Decorative gradient -->
+  <div class="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-blue-500/10 blur-3xl pointer-events-none"></div>
+
+  <div class="relative z-10">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl font-bold text-white flex items-center gap-2">
+        <span class="text-blue-400">📝</span> {{ 'SUGGESTIONS.TITLE' | translate }}
+      </h2>
+      <button class="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1 group">
+        {{ 'SUGGESTIONS.VIEW_ALL' | translate }}
+        <span class="transition-transform group-hover:translate-x-1">&rarr;</span>
+      </button>
+    </div>
+
+    <div class="space-y-4 stagger-children">
+      <div *ngFor="let suggestion of suggestions; let i = index"
+           class="p-4 rounded-xl bg-slate-800/30 border border-white/5 transition-all duration-300 cursor-pointer group animate-slide-in-up"
+           [style.animation-delay]="i * 0.1 + 's'"
+           style="
+             transition: transform 0.3s cubic-bezier(0.4,0,0.2,1),
+                         box-shadow 0.3s ease,
+                         background 0.3s ease;
+           "
+           onmouseenter="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 40px rgba(59, 130, 246, 0.15)'; this.style.background='rgba(51, 65, 85, 0.5)'"
+           onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.background='rgba(30, 41, 59, 0.3)'">
+
+        <div class="flex justify-between items-start mb-2">
+          <h3 class="font-semibold text-slate-200 group-hover:text-blue-400 transition-colors">{{ suggestion.title }}</h3>
+          <span class="text-xs text-slate-500 font-medium px-2 py-1 bg-slate-900/80 rounded-md border border-white/5">{{ suggestion.date }}</span>
+        </div>
+
+        <p class="text-slate-400 text-sm mb-3 leading-relaxed">{{ suggestion.description }}</p>
+
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs text-slate-500">
+            <div class="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-500/20 to-purple-500/20 flex items-center justify-center text-slate-300 border border-white/10 group-hover:scale-110 transition-transform">
+              {{ suggestion.author.charAt(0) }}
+            </div>
+            <span class="group-hover:text-slate-300 transition-colors">{{ suggestion.author }}</span>
+          </div>
+
+          <!-- Action buttons that appear on hover -->
+          <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <button class="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors" title="Like">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+              </svg>
+            </button>
+            <button class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors" title="Support">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add new suggestion CTA -->
+    <button class="w-full mt-4 py-3 rounded-xl border border-dashed border-white/20 text-slate-400 hover:text-white hover:bg-white/5 hover:border-white/30 transition-all flex items-center justify-center gap-2 text-sm font-medium">
+      <span class="text-lg">+</span> {{ 'SUGGESTIONS.ADD_NEW' | translate }}
+    </button>
+  </div>
+</div>

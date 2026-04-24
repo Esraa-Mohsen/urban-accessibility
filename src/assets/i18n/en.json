@@ -1,0 +1,82 @@
+{
+  "NAVBAR": {
+    "TITLE": "Urban Accessibility Platform"
+  },
+  "SIDEBAR": {
+    "HOME": "Home",
+    "MAP": "Map",
+    "DASHBOARD": "Dashboard",
+    "VERSION": "v1.0.0 Alpha"
+  },
+  "TOGGLES": {
+    "SENIOR_MODE": "Senior Mode"
+  },
+  "HOME": {
+    "HERO_TITLE": "Measure Accessibility in a",
+    "HERO_TITLE_HIGHLIGHT": "15-Minute City",
+    "HERO_SUBTITLE": "Interactive decision support system evaluating urban accessibility. Discover which areas have access to essential services within a 15-minute walking distance.",
+    "BTN_MAP": "Explore Interactive Map",
+    "BTN_DASH": "View Analytics",
+    "PHARMACY": "Pharmacy Coverage",
+    "PARKS": "Parks Coverage",
+    "HOSPITALS": "Hospital Coverage",
+    "POPULATION": "Total Population",
+    "KEY_INSIGHTS": "Key Insights",
+    "INSIGHT_1": "2 zones have excellent accessibility (5 min)",
+    "INSIGHT_2": "3 zones have moderate accessibility (10 min)",
+    "INSIGHT_3": "2 critical zones require immediate attention",
+    "FEATURES": "Features",
+    "FEAT_1": "Interactive map with color-coded zones",
+    "FEAT_2": "Senior mode for adjusted walking speeds",
+    "FEAT_3": "Smart suggestions for underserved areas",
+    "FEAT_4": "Cool path visualization for comfort",
+    "ACTIVE_SERVICE": "Active Service",
+    "SENIOR_MODE_ACTIVE": "Senior Mode Active",
+    "POP_COVERAGE": "Pop. Coverage",
+    "ACCESS_SCORE": "Accessibility Score"
+  },
+  "ABOUT": {
+    "TITLE": "About Us",
+    "SUBTITLE": "Ismailia 15",
+    "TEXT": "\"Ismailia 15\" is a cutting-edge digital platform dedicated to transforming Ismailia's District 2 into a sustainable, human-centric community. By implementing the global 15-Minute City model, we aim to ensure that residents in El Salam, El Araisheya, and Mansheyet El Shohadaa can access all essential daily functions (including healthcare, education, food, and leisure) within a 15-minute walk or cycle. The platform strives to reduce car dependency, lower carbon emissions, and mitigate unplanned urban sprawl, enhancing the overall quality of life in alignment with Egypt Vision 2030.",
+    "GOAL_1_TITLE": "Reduce Car Dependency",
+    "GOAL_1_DESC": "Promoting walkable neighborhoods and cycling infrastructure",
+    "GOAL_2_TITLE": "Lower Carbon Emissions",
+    "GOAL_2_DESC": "Building sustainable communities for a greener future",
+    "GOAL_3_TITLE": "Smart Urban Planning",
+    "GOAL_3_DESC": "Data-driven decisions to combat unplanned urban sprawl",
+    "VISION": "Egypt Vision 2030"
+  },
+  "DASHBOARD": {
+    "TITLE": "Analytics Dashboard",
+    "SUBTITLE": "Comprehensive accessibility metrics and insights",
+    "REFRESH": "Refresh",
+    "PHARMACY": "Avg Pharmacy Coverage",
+    "PARKS": "Avg Parks Coverage",
+    "HOSPITALS": "Avg Hospital Coverage",
+    "POPULATION": "Total Population",
+    "ACROSS_ZONES": "Across all zones",
+    "COVERAGE": "Coverage",
+    "LIVE_UPDATE": "Live update",
+    "OPEN_ISSUES": "Open Issues",
+    "RESOLVED": "Resolved",
+    "SUGGESTIONS": "Suggestions",
+    "CHART_BAR": "Coverage by Service Type",
+    "CHART_PIE": "Accessibility Distribution",
+    "CHART_LINE": "Population vs Coverage Trend",
+    "TABLE_TITLE": "Zone Comparison Table",
+    "TABLE_ZONE": "Zone Name",
+    "TABLE_POP": "Population",
+    "TABLE_COV": "Overall Coverage",
+    "TABLE_STATUS": "Status",
+    "STATUS_EXCELLENT": "Excellent",
+    "STATUS_GOOD": "Good",
+    "STATUS_LIMITED": "Limited",
+    "STATUS_CRITICAL": "Critical"
+  },
+  "SUGGESTIONS": {
+    "TITLE": "Latest Suggestions",
+    "VIEW_ALL": "View All",
+    "ADD_NEW": "Add New Suggestion"
+  }
+}

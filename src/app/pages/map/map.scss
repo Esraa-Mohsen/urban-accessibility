@@ -1,0 +1,94 @@
+.leaflet-container {
+  font-family: 'Inter', sans-serif;
+  background: #0B0F1A !important;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 400 !important;
+}
+
+.leaflet-pane {
+  z-index: 10 !important;
+}
+
+/* Ensure map layers don't overlap our floating UI */
+.leaflet-control-container {
+  z-index: 400 !important;
+}
+
+/* Critical zone circles with pulse animation */
+.critical-zone-circle {
+  animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+/* Selected zone highlight with rotating dash */
+.selected-zone-pulse {
+  animation: rotate-dash 1s linear infinite, pulse-brightness 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+}
+
+@keyframes rotate-dash {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 16;
+  }
+}
+
+@keyframes pulse-brightness {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Service icon markers */
+.service-icon-marker {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  transition: transform 0.2s ease;
+}
+
+.service-icon-marker:hover {
+  transform: scale(1.2);
+  z-index: 1000 !important;
+}
+
+/* Fix for partial circle rendering */
+.leaflet-overlay-pane svg {
+  will-change: transform;
+}
+
+/* Ensure circles are fully visible */
+.leaflet-interactive {
+  fill-opacity: 0.4 !important;
+  stroke-opacity: 1 !important;
+}
+
+/* Popup styles */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.leaflet-popup-content {
+  margin: 12px;
+}
