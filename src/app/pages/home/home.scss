@@ -1,1 +1,18 @@
 /* Managed by Tailwind */
+
+/* Earth rotation + zoom animation */
+@keyframes earth-animation {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(180deg) scale(1.15);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg) scale(1);
+  }
+}
+
+.animate-earth-rotate {
+  animation: earth-animation 30s ease-in-out infinite;
+}

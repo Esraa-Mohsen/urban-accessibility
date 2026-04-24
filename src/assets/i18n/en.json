@@ -55,6 +55,8 @@
     "PARKS": "Avg Parks Coverage",
     "HOSPITALS": "Avg Hospital Coverage",
     "POPULATION": "Total Population",
+    "POP_COVERAGE": "Population",
+    "ACCESS_SCORE": "Accessibility Score",
     "ACROSS_ZONES": "Across all zones",
     "COVERAGE": "Coverage",
     "LIVE_UPDATE": "Live update",

@@ -55,6 +55,8 @@
     "PARKS": "متوسط تغطية المتنزهات",
     "HOSPITALS": "متوسط تغطية المستشفيات",
     "POPULATION": "إجمالي السكان",
+    "POP_COVERAGE": "تغطية السكان",
+    "ACCESS_SCORE": "درجة الوصول",
     "ACROSS_ZONES": "عبر جميع المناطق",
     "COVERAGE": "التغطية",
     "LIVE_UPDATE": "تحديث مباشر",

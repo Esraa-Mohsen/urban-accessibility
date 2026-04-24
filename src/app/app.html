@@ -1,5 +1,15 @@
 <!-- Root wrapper: full viewport, no overflow -->
-<div class="flex flex-col bg-[#0B0F1A] text-slate-100 antialiased" style="height:100vh; width:100vw; overflow:hidden;">
+<div class="flex flex-col bg-[#0B0F1A] text-slate-100 antialiased relative" style="height:100vh; width:100vw; overflow:hidden;">
+  
+  <!-- Global Earth Background -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0 flex items-center justify-center">
+    <div class="w-full h-full opacity-35">
+      <img src="assets/images/png-transparent-earth.png" 
+           alt="" 
+           class="w-full h-full object-contain animate-earth-rotate"
+           style="filter: blur(1px) brightness(1.1) contrast(1.2);">
+    </div>
+  </div>
 
   <!-- ═══ NAVBAR ═══ -->
   <header class="shrink-0 h-14 flex items-center justify-between px-4 border-b border-white/10 bg-slate-900/80 backdrop-blur-md z-30">
@@ -64,15 +74,6 @@
 
       <!-- Senior Toggle -->
       <app-senior-toggle></app-senior-toggle>
-
-      <!-- Theme Toggle -->
-      <button (click)="toggleTheme()"
-        class="w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center hover:bg-slate-700 transition-all hover:scale-105"
-        [title]="isDark() ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
-        <span class="text-lg transition-all duration-300" [class.rotate-180]="!isDark()">
-          {{ isDark() ? '🌙' : '☀️' }}
-        </span>
-      </button>
 
       <!-- Avatar -->
       <div class="w-8 h-8 rounded-full bg-slate-700 border border-white/10 flex items-center justify-center shrink-0 ml-1">

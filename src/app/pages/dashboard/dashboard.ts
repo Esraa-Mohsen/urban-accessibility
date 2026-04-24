@@ -1,14 +1,13 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StatsCards } from '../../components/stats-cards/stats-cards';
-import { SuggestionPanel } from '../../components/suggestion-panel/suggestion-panel';
 import { DataService, Zone } from '../../services/data';
 import { TranslateModule } from '@ngx-translate/core';
 import Chart from 'chart.js/auto';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, StatsCards, SuggestionPanel, TranslateModule],
+  imports: [CommonModule, StatsCards, TranslateModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -50,6 +49,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   private initCharts() {
     const isSenior = this.dataService.seniorMode();
     const labels = this.zones.map(z => z.name);
+    const factor = isSenior ? 0.7 : 1;
 
     // 1. Bar Chart: Services Coverage
     this.barChartInstance = new Chart(this.barChartRef.nativeElement, {
@@ -57,9 +57,9 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
       data: {
         labels: labels,
         datasets: [
-          { label: 'Pharmacies', data: this.zones.map(z => z.services.pharmacies * 8), backgroundColor: '#10b981', borderRadius: 4 },
-          { label: 'Parks', data: this.zones.map(z => z.services.parks * 15), backgroundColor: '#f59e0b', borderRadius: 4 },
-          { label: 'Hospitals', data: this.zones.map(z => z.services.hospitals * 40), backgroundColor: '#3b82f6', borderRadius: 4 }
+          { label: 'Pharmacies', data: this.zones.map(z => Math.round(z.services.pharmacies * 8 * factor)), backgroundColor: '#10b981', borderRadius: 4 },
+          { label: 'Parks', data: this.zones.map(z => Math.round(z.services.parks * 15 * factor)), backgroundColor: '#f59e0b', borderRadius: 4 },
+          { label: 'Hospitals', data: this.zones.map(z => Math.round(z.services.hospitals * 40 * factor)), backgroundColor: '#3b82f6', borderRadius: 4 }
         ]
       },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#cbd5e1' } } }, scales: { y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } }

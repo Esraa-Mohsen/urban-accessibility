@@ -1,0 +1,14 @@
+/* Earth rotation + zoom animation */
+@keyframes earth-animation {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.15) rotate(90deg);
+  }
+}
+
+.animate-earth-rotate {
+  animation: earth-animation 45s ease-in-out infinite;
+  transform-origin: center center;
+}

@@ -51,14 +51,29 @@ export class Map implements OnInit, OnDestroy {
   // Service selector
   activeService = computed(() => this.dataService.activeService());
 
+  // Mobile UI state
+  showMobileLayers = signal(false);
+  showMobilePanel = signal(false);
+
   // KPI computed values
   currentCoverage = computed(() => {
     if (!this.selectedZone) return 0;
+    // Read seniorMode to make this reactive to Senior Mode changes
+    const seniorMode = this.dataService.seniorMode();
     return this.dataService.getZoneCoverageForService(this.selectedZone, this.activeService());
   });
 
-  accessibilityScore = computed(() => this.dataService.getOverallAccessibilityScore());
-  populationCoverage = computed(() => this.dataService.getPopulationCoverage());
+  accessibilityScore = computed(() => {
+    // Read seniorMode to make this reactive to Senior Mode changes
+    const seniorMode = this.dataService.seniorMode();
+    return this.dataService.getOverallAccessibilityScore();
+  });
+
+  populationCoverage = computed(() => {
+    // Read seniorMode to make this reactive to Senior Mode changes
+    const seniorMode = this.dataService.seniorMode();
+    return this.dataService.getPopulationCoverage();
+  });
 
   // AI suggestion for selected zone
   currentAISuggestion = computed((): AISuggestion | null => {
@@ -83,7 +98,21 @@ export class Map implements OnInit, OnDestroy {
     // React to senior mode change
     effect(() => {
       const isSenior = this.dataService.seniorMode();
-      // triggers recomputation of coverage values
+      // Update zone colors when senior mode changes
+      this.updateZoneColors(this.dataService.activeService());
+      // Update zone circle radii for seniors (smaller walking areas)
+      const seniorFactor = isSenior ? 0.7 : 1; // 30% smaller for seniors
+      this.zoneLayers.forEach((circle, index) => {
+        const zone = this.zones[index];
+        if (zone) {
+          circle.setRadius(zone.radius * seniorFactor);
+          // Also reduce opacity for seniors to indicate lower coverage
+          circle.setStyle({
+            fillOpacity: isSenior ? 0.25 : 0.4,
+            weight: isSenior ? 2 : 3
+          });
+        }
+      });
     });
 
     // React to new city reports
@@ -97,13 +126,16 @@ export class Map implements OnInit, OnDestroy {
     this.zones = this.dataService.getZones();
     this.initMap();
 
+    // Add resize listener for responsive map
+    window.addEventListener('resize', this.handleResize);
+
     // Wait for map to be fully ready before adding layers
     // This fixes the partial circle rendering issue
     if (this.map) {
       this.map.whenReady(() => {
         // Force map to calculate correct size
         this.map!.invalidateSize();
-        
+
         // Use requestAnimationFrame to ensure DOM is fully painted
         requestAnimationFrame(() => {
           this.addZoneBoundaries();
@@ -113,7 +145,7 @@ export class Map implements OnInit, OnDestroy {
           this.addSunlightOverlay();
           this.addAIMarkers();
           this.addRealServiceMarkers();
-          
+
           // Force another invalidate after all layers added
           setTimeout(() => {
             this.map?.invalidateSize();
@@ -128,7 +160,18 @@ export class Map implements OnInit, OnDestroy {
     if (this.map) {
       this.map.remove();
     }
+    // Remove resize listener
+    window.removeEventListener('resize', this.handleResize);
   }
+
+  private handleResize = () => {
+    if (this.map) {
+      // Small delay to allow container to settle
+      setTimeout(() => {
+        this.map?.invalidateSize();
+      }, 100);
+    }
+  };
 
   selectService(service: ServiceType) {
     this.dataService.activeService.set(service);
@@ -138,6 +181,8 @@ export class Map implements OnInit, OnDestroy {
     this.ngZone.run(() => {
       this.selectedZone = zone;
       this.showPanel.set(true);
+      // Auto-show mobile panel when zone selected
+      this.showMobilePanel.set(true);
     });
 
     // Add visual highlight on the map

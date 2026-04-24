@@ -56,6 +56,7 @@ export interface AISuggestion {
   serviceType: string;
   coords: [number, number];
   title: string;
+  description: string;
   populationServed: number;
   impactPercent: number;
 }
@@ -477,12 +478,16 @@ export class DataService {
   private aiSuggestions: AISuggestion[] = [
     {
       zoneId: 'z3', serviceType: 'Clinic',
-      coords: [30.5870, 32.2870], title: 'Optimal location for a new clinic',
+      coords: [30.5870, 32.2870],
+      title: 'Optimal location for a new clinic',
+      description: 'This location would serve 3,200 residents and increase coverage by 55%. Ideal for underserved El Shohadaa area.',
       populationServed: 3200, impactPercent: 55
     },
     {
       zoneId: 'z5', serviceType: 'Pharmacy',
-      coords: [30.5915, 32.2580], title: 'Best location for a new pharmacy',
+      coords: [30.5915, 32.2580],
+      title: 'Best location for a new pharmacy',
+      description: 'Strategic location near Al Salam would serve 4,800 residents and improve coverage by 42%.',
       populationServed: 4800, impactPercent: 42
     }
   ];
@@ -595,6 +600,7 @@ export class DataService {
       serviceType: serviceNames[lowestService],
       coords: [zone.coords[0] + offsetLat, zone.coords[1] + offsetLng],
       title: `Add a new ${serviceNames[lowestService]} to improve coverage from ${lowestCoverage}% to ${Math.min(95, lowestCoverage + impact)}%`,
+      description: `Adding ${serviceNames[lowestService]} at this location will serve ${populationServed.toLocaleString()} residents with ${impact}% coverage improvement.`,
       populationServed,
       impactPercent: impact
     };
