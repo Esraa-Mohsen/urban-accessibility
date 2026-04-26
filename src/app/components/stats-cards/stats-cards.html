@@ -2,73 +2,73 @@
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
 
   <!-- Dynamic Service Coverage Card -->
-  <div class="glass-panel p-5 border-t-4 hover:-translate-y-1 transition-transform duration-300 group animate-slide-in-up"
+  <div class="glass-panel p-4 border-t-4 hover:-translate-y-1 transition-transform duration-300 group animate-slide-in-up overflow-hidden"
        [ngStyle]="{'border-top-color': serviceColor()}">
-    <div class="flex items-center gap-3 mb-3">
-      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl border transition-transform group-hover:scale-110"
+    <div class="flex items-center gap-2 mb-2">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center text-lg border transition-transform group-hover:scale-110"
            [ngStyle]="{'background-color': serviceColor() + '1a', 'border-color': serviceColor() + '33'}">
         {{ serviceIcon() }}
       </div>
       <p class="text-slate-400 text-xs font-medium leading-tight">{{ serviceName() }} {{ 'DASHBOARD.COVERAGE' | translate }}</p>
     </div>
-    <p class="text-4xl font-extrabold" [ngStyle]="{'color': serviceColor()}">
+    <p class="text-3xl font-extrabold" [ngStyle]="{'color': serviceColor()}">
       <app-animated-counter [value]="serviceCoverage()" suffix="%"></app-animated-counter>
     </p>
-    <p class="text-xs text-slate-500 mt-2 flex items-center gap-1">
+    <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
       <span class="w-1.5 h-1.5 rounded-full animate-pulse" [ngStyle]="{'background-color': serviceColor()}"></span>
       {{ 'DASHBOARD.LIVE_UPDATE' | translate }}
     </p>
   </div>
 
   <!-- Population Coverage Card -->
-  <div class="glass-panel p-5 border-t-4 border-t-emerald-400 hover:-translate-y-1 transition-transform duration-300 group animate-slide-in-up"
+  <div class="glass-panel p-4 border-t-4 border-t-emerald-400 hover:-translate-y-1 transition-transform duration-300 group animate-slide-in-up overflow-hidden"
        style="animation-delay: 0.05s">
-    <div class="flex items-center gap-3 mb-3">
-      <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-xl border border-emerald-500/20 group-hover:scale-110 transition-transform">
+    <div class="flex items-center gap-2 mb-2">
+      <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-lg border border-emerald-500/20 group-hover:scale-110 transition-transform">
         🏘️
       </div>
       <p class="text-slate-400 text-xs font-medium leading-tight">{{ 'DASHBOARD.POP_COVERAGE' | translate }}</p>
     </div>
-    <p class="text-4xl font-extrabold text-emerald-400">
+    <p class="text-3xl font-extrabold text-emerald-400">
       <app-animated-counter [value]="populationCoverage()" suffix="%"></app-animated-counter>
     </p>
-    <p class="text-xs text-slate-500 mt-2 flex items-center gap-1">
+    <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
       <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
       {{ 'DASHBOARD.LIVE_UPDATE' | translate }}
     </p>
   </div>
 
   <!-- Accessibility Score Card -->
-  <div class="glass-panel p-5 border-t-4 border-t-blue-400 hover:-translate-y-1 transition-transform duration-300 group animate-slide-in-up"
+  <div class="glass-panel p-4 border-t-4 border-t-blue-400 hover:-translate-y-1 transition-transform duration-300 group animate-slide-in-up overflow-hidden"
        style="animation-delay: 0.1s">
-    <div class="flex items-center gap-3 mb-3">
-      <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-xl border border-blue-500/20 group-hover:scale-110 transition-transform">
+    <div class="flex items-center gap-2 mb-2">
+      <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-lg border border-blue-500/20 group-hover:scale-110 transition-transform">
         📊
       </div>
       <p class="text-slate-400 text-xs font-medium leading-tight">{{ 'DASHBOARD.ACCESS_SCORE' | translate }}</p>
     </div>
-    <p class="text-4xl font-extrabold text-blue-400">
+    <p class="text-3xl font-extrabold text-blue-400">
       <app-animated-counter [value]="accessibilityScore()" suffix="%"></app-animated-counter>
     </p>
-    <p class="text-xs text-slate-500 mt-2 flex items-center gap-1">
+    <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
       <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
       {{ 'DASHBOARD.LIVE_UPDATE' | translate }}
     </p>
   </div>
 
   <!-- Population Card -->
-  <div class="glass-panel p-5 border-t-4 border-t-purple-400 hover:-translate-y-1 transition-transform duration-300 group animate-slide-in-up"
+  <div class="glass-panel p-4 border-t-4 border-t-purple-400 hover:-translate-y-1 transition-transform duration-300 group animate-slide-in-up overflow-hidden"
        style="animation-delay: 0.15s">
-    <div class="flex items-center gap-3 mb-3">
-      <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-xl border border-purple-500/20 group-hover:scale-110 transition-transform">
+    <div class="flex items-center gap-2 mb-2">
+      <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-lg border border-purple-500/20 group-hover:scale-110 transition-transform">
         👥
       </div>
       <p class="text-slate-400 text-xs font-medium leading-tight">{{ 'DASHBOARD.POPULATION' | translate }}</p>
     </div>
-    <p class="text-4xl font-extrabold text-purple-400">
+    <p class="text-3xl font-extrabold text-purple-400">
       <app-animated-counter [value]="totalPopulation()"></app-animated-counter>
     </p>
-    <p class="text-xs text-slate-500 mt-2">{{ 'DASHBOARD.ACROSS_ZONES' | translate }}</p>
+    <p class="text-xs text-slate-500 mt-1">{{ 'DASHBOARD.ACROSS_ZONES' | translate }}</p>
   </div>
 
 </div>
@@ -76,34 +76,34 @@
 <!-- Row 2: Issue / Resolved / Suggestions -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
 
-  <div class="glass-panel p-5 flex items-center gap-5 hover:-translate-y-1 transition-transform duration-300 hover:shadow-amber-500/10 hover:shadow-2xl animate-slide-in-up"
+  <div class="glass-panel p-4 flex items-center gap-4 hover:-translate-y-1 transition-transform duration-300 hover:shadow-amber-500/10 hover:shadow-2xl animate-slide-in-up overflow-hidden"
        style="animation-delay: 0.2s">
-    <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-2xl border border-amber-500/20 shrink-0">🚧</div>
+    <div class="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center text-xl border border-amber-500/20 shrink-0">🚧</div>
     <div>
       <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">{{ 'DASHBOARD.OPEN_ISSUES' | translate }}</p>
-      <p class="text-3xl font-bold text-white mt-1">
+      <p class="text-2xl font-bold text-white mt-1">
         <app-animated-counter [value]="openIssues()"></app-animated-counter>
       </p>
     </div>
   </div>
 
-  <div class="glass-panel p-5 flex items-center gap-5 hover:-translate-y-1 transition-transform duration-300 hover:shadow-emerald-500/10 hover:shadow-2xl animate-slide-in-up"
+  <div class="glass-panel p-4 flex items-center gap-4 hover:-translate-y-1 transition-transform duration-300 hover:shadow-emerald-500/10 hover:shadow-2xl animate-slide-in-up overflow-hidden"
        style="animation-delay: 0.25s">
-    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-2xl border border-emerald-500/20 shrink-0">✅</div>
+    <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-xl border border-emerald-500/20 shrink-0">✅</div>
     <div>
       <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">{{ 'DASHBOARD.RESOLVED' | translate }}</p>
-      <p class="text-3xl font-bold text-white mt-1">
+      <p class="text-2xl font-bold text-white mt-1">
         <app-animated-counter [value]="resolvedIssues()"></app-animated-counter>
       </p>
     </div>
   </div>
 
-  <div class="glass-panel p-5 flex items-center gap-5 hover:-translate-y-1 transition-transform duration-300 hover:shadow-blue-500/10 hover:shadow-2xl animate-slide-in-up"
+  <div class="glass-panel p-4 flex items-center gap-4 hover:-translate-y-1 transition-transform duration-300 hover:shadow-blue-500/10 hover:shadow-2xl animate-slide-in-up overflow-hidden"
        style="animation-delay: 0.3s">
-    <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-2xl border border-blue-500/20 shrink-0">💡</div>
+    <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-xl border border-blue-500/20 shrink-0">💡</div>
     <div>
       <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">{{ 'DASHBOARD.SUGGESTIONS' | translate }}</p>
-      <p class="text-3xl font-bold text-white mt-1">
+      <p class="text-2xl font-bold text-white mt-1">
         <app-animated-counter [value]="suggestions.length"></app-animated-counter>
       </p>
     </div>
