@@ -15,23 +15,17 @@ export class StatsCards implements OnInit {
   suggestions: Suggestion[] = [];
   zones: Zone[] = [];
 
-  // KPI signals for animated updates
-  populationCoverage = signal<number>(0);
-  accessibilityScore = signal<number>(0);
-  activeService = signal<ServiceType>('pharmacy');
+  // KPI computed values (same as Home)
+  populationCoverage = computed(() => this.dataService.getPopulationCoverage());
+  accessibilityScore = computed(() => this.dataService.getOverallAccessibilityScore());
+  activeService = computed(() => this.dataService.activeService());
 
   constructor(public dataService: DataService) {
-    // React to service changes
+    // React to service/senior mode changes for live updates
     effect(() => {
-      const service = this.dataService.activeService();
-      this.activeService.set(service);
-      this.updateKPIs();
-    });
-
-    // React to senior mode changes
-    effect(() => {
-      const _ = this.dataService.seniorMode();
-      this.updateKPIs();
+      const _ = this.dataService.activeService();
+      const __ = this.dataService.seniorMode();
+      // Triggers re-computation of populationCoverage and accessibilityScore
     });
   }
 
@@ -39,12 +33,6 @@ export class StatsCards implements OnInit {
     this.issues = this.dataService.getIssues();
     this.suggestions = this.dataService.getSuggestions();
     this.zones = this.dataService.getZones();
-    this.updateKPIs();
-  }
-
-  private updateKPIs() {
-    this.populationCoverage.set(this.dataService.getPopulationCoverage());
-    this.accessibilityScore.set(this.dataService.getOverallAccessibilityScore());
   }
 
   openIssues = computed(() => this.issues.filter(i => i.status === 'Open').length);

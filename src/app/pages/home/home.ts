@@ -15,7 +15,7 @@ export class Home implements OnInit {
   pharmacyCoverage = signal(62);
   parksCoverage = signal(51);
   hospitalsCoverage = signal(47);
-  totalPopulation = signal(55800);
+  totalPopulation = computed(() => this.dataService.getZones().reduce((s, z) => s + z.population, 0));
 
   // Live service status
   activeService = computed(() => this.dataService.activeService());
