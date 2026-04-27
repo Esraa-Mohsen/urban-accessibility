@@ -63,6 +63,12 @@ export interface AISuggestion {
 
 export type ServiceType = 'pharmacy' | 'parks' | 'hospitals';
 
+/** Approximate share 60+ (CAPMAS-style urban estimate) — used for Senior Mode “people served”. */
+export const SENIOR_POPULATION_SHARE = 0.135;
+
+/** Expected people served by one well-placed facility as a share of the uncovered population. */
+const NEW_SITE_GAP_CAPTURE = 0.16;
+
 // ═══ Real Service Locations from KML Data ═══
 export interface ServiceLocation {
   id: string;
@@ -129,67 +135,67 @@ export interface PublicPlace {
   openingHours?: string;
 }
 
-// ═══ ADMINISTRATIVE ZONE BOUNDARIES (Placeholders - Replace with real GeoJSON/KML) ═══
+// ═══ ADMINISTRATIVE ZONE BOUNDARIES (Real data from user) ═══
 export const ZONE_BOUNDARIES: ZoneBoundary[] = [
   {
     id: 'zb1',
     name: 'عرايشية مصر',
     nameEn: 'Araishiyat Masr',
     population: 75000,
-    areaKm2: 2.5,
-    density: 30000,
+    areaKm2: 2.8,
+    density: 26785,
     // Approximate polygon - replace with real boundary
     polygon: [
-      [30.605, 32.268], [30.605, 32.275], [30.592, 32.275],
-      [30.592, 32.268], [30.605, 32.268]
+      [30.600, 32.270], [30.600, 32.280], [30.590, 32.280],
+      [30.590, 32.270], [30.600, 32.270]
     ],
-    center: [30.5987, 32.2714],
-    blockCount: 45,
+    center: [30.5950, 32.2750],
+    blockCount: 25,
     serviceScore: 85
   },
   {
     id: 'zb2',
     name: 'حي السلام',
-    nameEn: 'Hay Al-Salam',
+    nameEn: 'Al Salam',
     population: 90000,
-    areaKm2: 3.2,
-    density: 28125,
+    areaKm2: 3.5,
+    density: 25714,
     polygon: [
-      [30.610, 32.270], [30.610, 32.280], [30.600, 32.280],
-      [30.600, 32.270], [30.610, 32.270]
+      [30.605, 32.275], [30.605, 32.285], [30.595, 32.285],
+      [30.595, 32.275], [30.605, 32.275]
     ],
-    center: [30.6050, 32.2750],
-    blockCount: 52,
+    center: [30.6000, 32.2800],
+    blockCount: 30,
     serviceScore: 78
   },
   {
     id: 'zb3',
     name: 'الشهداء',
-    nameEn: 'Al-Shuhada',
+    nameEn: 'Al Shohadaa',
     population: 55000,
-    areaKm2: 1.8,
-    density: 30556,
+    areaKm2: 2.2,
+    density: 25000,
     polygon: [
-      [30.595, 32.255], [30.595, 32.262], [30.586, 32.262],
-      [30.586, 32.255], [30.595, 32.255]
+      [30.590, 32.260], [30.590, 32.270], [30.580, 32.270],
+      [30.580, 32.260], [30.590, 32.260]
     ],
-    center: [30.5908, 32.2585],
-    blockCount: 28,
-    serviceScore: 72
+    center: [30.5850, 32.2650],
+    blockCount: 18,
+    serviceScore: 65
   },
   {
     id: 'zb4',
-    name: 'أبو عطوة',
-    nameEn: 'Abu Atwa',
+    name: 'أبو عطوة (نطاق الحي)',
+    nameEn: 'Abu Atowa',
     population: 25000,
-    areaKm2: 1.5,
-    density: 16667,
+    areaKm2: 2.5,
+    density: 10000,
     polygon: [
-      [30.618, 32.260], [30.618, 32.270], [30.610, 32.270],
-      [30.610, 32.260], [30.618, 32.260]
+      [30.615, 32.265], [30.615, 32.275], [30.605, 32.275],
+      [30.605, 32.265], [30.615, 32.265]
     ],
-    center: [30.6140, 32.2650],
-    blockCount: 15,
+    center: [30.6100, 32.2700],
+    blockCount: 8,
     serviceScore: 45
   },
   {
@@ -197,8 +203,8 @@ export const ZONE_BOUNDARIES: ZoneBoundary[] = [
     name: 'منطقة المستشفى العام',
     nameEn: 'General Hospital Area',
     population: 20000,
-    areaKm2: 0.9,
-    density: 22222,
+    areaKm2: 1.5,
+    density: 13333,
     polygon: [
       [30.615, 32.280], [30.615, 32.290], [30.605, 32.290],
       [30.605, 32.280], [30.615, 32.280]
@@ -414,89 +420,106 @@ export class DataService {
   activeService = signal<ServiceType>('pharmacy');
 
   // ═══ Real Zones Data - Ismailia Second District ═══
-  // Source: CAPMAS 2017, Total Population: 125,000
+  // Population: zone JSON (265k total across five sheiakhas). Service counts synced from REAL_SERVICES (KML) in getZones().
   private mockZones: Zone[] = [
     {
       id: 'z1', name: 'عرايشية مصر', color: '#10b981',
-      coords: [30.5987, 32.2714], radius: 900, population: 75000, baseCoverage: 85,
-      services: { pharmacies: 8, hospitals: 3, parks: 1, schools: 6 },
+      coords: [30.5987, 32.2714], radius: 900, population: 75000, baseCoverage: 78,
+      services: { pharmacies: 10, hospitals: 3, parks: 1, schools: 12 },
       status: 'excellent'
     },
     {
       id: 'z2', name: 'حي السلام', color: '#f59e0b',
-      coords: [30.6050, 32.2750], radius: 1000, population: 90000, baseCoverage: 72,
-      services: { pharmacies: 10, hospitals: 4, parks: 1, schools: 8 },
+      coords: [30.6050, 32.2750], radius: 1000, population: 90000, baseCoverage: 68,
+      services: { pharmacies: 12, hospitals: 4, parks: 1, schools: 14 },
       status: 'good'
     },
     {
       id: 'z3', name: 'الشهداء', color: '#f59e0b',
-      coords: [30.5908, 32.2585], radius: 850, population: 55000, baseCoverage: 65,
-      services: { pharmacies: 6, hospitals: 2, parks: 0, schools: 5 },
-      status: 'good'
+      coords: [30.5908, 32.2585], radius: 850, population: 55000, baseCoverage: 55,
+      services: { pharmacies: 7, hospitals: 2, parks: 0, schools: 8 },
+      status: 'limited'
     },
     {
       id: 'z4', name: 'أبو عطوة', color: '#f97316',
-      coords: [30.6140, 32.2650], radius: 800, population: 25000, baseCoverage: 45,
-      services: { pharmacies: 3, hospitals: 1, parks: 0, schools: 2 },
-      status: 'limited',
+      coords: [30.6140, 32.2650], radius: 800, population: 25000, baseCoverage: 35,
+      services: { pharmacies: 3, hospitals: 1, parks: 0, schools: 3 },
+      status: 'critical',
       suggestion: 'يحتاج إلى صيدلية وحديقة عامة'
     },
     {
       id: 'z5', name: 'منطقة المستشفى العام', color: '#10b981',
-      coords: [30.6100, 32.2850], radius: 600, population: 20000, baseCoverage: 92,
-      services: { pharmacies: 4, hospitals: 5, parks: 0, schools: 1 },
+      coords: [30.6100, 32.2850], radius: 600, population: 20000, baseCoverage: 88,
+      services: { pharmacies: 3, hospitals: 1, parks: 0, schools: 2 },
       status: 'excellent'
-    }
-  ];
-
-  // ═══ Isochrone datasets per service ═══
-  private isochroneMap: Record<ServiceType, Record<string, { coverage: number; tier: string; color: string }>> = {
-    pharmacy: {
-      z1: { coverage: 95, tier: '5min', color: '#10b981' },
-      z2: { coverage: 60, tier: '10min', color: '#f59e0b' },
-      z3: { coverage: 12, tier: 'underserved', color: '#ef4444' },
-      z4: { coverage: 70, tier: '10min', color: '#f59e0b' },
-      z5: { coverage: 30, tier: '15min', color: '#f97316' },
-    },
-    parks: {
-      z1: { coverage: 80, tier: '5min', color: '#10b981' },
-      z2: { coverage: 45, tier: '15min', color: '#f97316' },
-      z3: { coverage: 5, tier: 'underserved', color: '#ef4444' },
-      z4: { coverage: 65, tier: '10min', color: '#f59e0b' },
-      z5: { coverage: 20, tier: 'underserved', color: '#ef4444' },
-    },
-    hospitals: {
-      z1: { coverage: 90, tier: '5min', color: '#10b981' },
-      z2: { coverage: 35, tier: '15min', color: '#f97316' },
-      z3: { coverage: 8, tier: 'underserved', color: '#ef4444' },
-      z4: { coverage: 55, tier: '10min', color: '#f59e0b' },
-      z5: { coverage: 15, tier: 'underserved', color: '#ef4444' },
-    }
-  };
-
-  // ═══ AI Suggestions per zone (for critical/red zones) ═══
-  private aiSuggestions: AISuggestion[] = [
-    {
-      zoneId: 'z3', serviceType: 'Clinic',
-      coords: [30.5870, 32.2870],
-      title: 'Optimal location for a new clinic',
-      description: 'This location would serve 3,200 residents and increase coverage by 55%. Ideal for underserved El Shohadaa area.',
-      populationServed: 3200, impactPercent: 55
-    },
-    {
-      zoneId: 'z5', serviceType: 'Pharmacy',
-      coords: [30.5915, 32.2580],
-      title: 'Best location for a new pharmacy',
-      description: 'Strategic location near Al Salam would serve 4,800 residents and improve coverage by 42%.',
-      populationServed: 4800, impactPercent: 42
     }
   ];
 
   // ═══ Fix My City reports ═══
   cityReports = signal<CityReport[]>([]);
 
-  getZones() {
-    return this.mockZones;
+  getZones(): Zone[] {
+    return this.mockZones.map(z => {
+      const c = this.getZoneServiceCounts(z.id);
+      return {
+        ...z,
+        services: {
+          pharmacies: c.pharmacies,
+          hospitals: c.hospitals,
+          parks: c.parks,
+          schools: c.schools,
+        },
+      };
+    });
+  }
+
+  /** Population-weighted % “served” for a fixed service type (matches dashboard / home cards). */
+  getDistrictPopulationCoverageForService(service: ServiceType): number {
+    const zones = this.mockZones;
+    const totalPop = zones.reduce((s, z) => s + z.population, 0);
+    if (totalPop <= 0) return 0;
+    const covered = zones.reduce(
+      (sum, z) => sum + (z.population * this.getZoneCoverageForService(z, service)) / 100,
+      0
+    );
+    return Math.round((covered / totalPop) * 100);
+  }
+
+  /** Coverage 0–95 from KML point counts inside the zone disc (benchmark vs population). */
+  private computeCoverageFromRealServices(zone: Zone, service: ServiceType): number {
+    const c = this.getZoneServiceCounts(zone.id);
+    let count = 0;
+    let peoplePerFacility = 4500;
+    if (service === 'pharmacy') {
+      count = c.pharmacies;
+      peoplePerFacility = 4200;
+    } else if (service === 'hospitals') {
+      count = c.hospitals;
+      peoplePerFacility = 22000;
+    } else {
+      count = c.parks;
+      peoplePerFacility = 55000;
+    }
+    const need = zone.population / Math.max(1, peoplePerFacility);
+    const ratio = count / Math.max(0.35, need);
+    const raw = Math.min(1, ratio);
+    return Math.min(95, Math.max(6, Math.round(raw * 94 + 4)));
+  }
+
+  private tierFromCoverage(coverage: number): { tier: IsochroneData['tier']; color: string } {
+    if (coverage >= 70) return { tier: '5min', color: '#10b981' };
+    if (coverage >= 45) return { tier: '10min', color: '#f59e0b' };
+    if (coverage >= 25) return { tier: '15min', color: '#f97316' };
+    return { tier: 'underserved', color: '#ef4444' };
+  }
+
+  private suggestionOffset(zoneId: string, service: ServiceType): [number, number] {
+    const seed = zoneId + service;
+    let h = 0;
+    for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+    const dLat = ((h % 19) - 9) * 0.00022;
+    const dLng = ((((h >> 3) & 0xffff) % 19) - 9) * 0.00022;
+    return [dLat, dLng];
   }
 
   private mockIssues: AccessibilityIssue[] = [
@@ -523,18 +546,22 @@ export class DataService {
     this.seniorMode.update(val => !val);
   }
 
-  // ── Isochrone API ──
+  // ── Isochrone API (colors tied to coverage from real KML counts) ──
   getIsochroneForZone(zoneId: string, service: ServiceType) {
-    return this.isochroneMap[service]?.[zoneId] || { coverage: 0, tier: 'underserved', color: '#ef4444' };
+    const zone = this.mockZones.find(z => z.id === zoneId);
+    if (!zone) return { coverage: 0, tier: 'underserved' as const, color: '#ef4444' };
+    const coverage = this.getZoneCoverageForService(zone, service);
+    const { tier, color } = this.tierFromCoverage(coverage);
+    return { coverage, tier, color };
   }
 
   getZoneColorForService(zone: Zone, service: ServiceType): string {
-    return this.isochroneMap[service]?.[zone.id]?.color || '#ef4444';
+    return this.tierFromCoverage(this.getZoneCoverageForService(zone, service)).color;
   }
 
   getZoneCoverageForService(zone: Zone, service: ServiceType): number {
-    const base = this.isochroneMap[service]?.[zone.id]?.coverage || 0;
-    return this.seniorMode() ? Math.max(0, base - 20) : base;
+    const base = this.computeCoverageFromRealServices(zone, service);
+    return this.seniorMode() ? Math.max(5, base - 20) : base;
   }
 
   getOverallAccessibilityScore(): number {
@@ -555,61 +582,61 @@ export class DataService {
     return Math.round((coveredPop / totalPop) * 100);
   }
 
-  // ── AI Planner ──
+  // ── AI Planner (location–allocation style metrics from zone pop + active service coverage) ──
   getAISuggestionForZone(zoneId: string): AISuggestion | null {
-    // Check for hardcoded suggestion first
-    const hardcoded = this.aiSuggestions.find(s => s.zoneId === zoneId);
-    if (hardcoded) return hardcoded;
-
-    // Generate dynamic suggestion based on zone needs
     const zone = this.mockZones.find(z => z.id === zoneId);
     if (!zone) return null;
 
-    // Find the service with lowest coverage
-    const services: ServiceType[] = ['pharmacy', 'hospitals', 'parks'];
-    let lowestService: ServiceType = 'pharmacy';
-    let lowestCoverage = 100;
+    const service = this.activeService();
+    const baseCoverage = this.computeCoverageFromRealServices(zone, service);
+    const coverage = this.seniorMode()
+      ? Math.max(5, baseCoverage - 20)
+      : baseCoverage;
 
-    services.forEach(service => {
-      const coverage = this.getZoneCoverageForService(zone, service);
-      if (coverage < lowestCoverage) {
-        lowestCoverage = coverage;
-        lowestService = service;
-      }
-    });
+    const gap = Math.max(0, 100 - coverage);
+    // Hide only when the modeled gap is negligible (avoids fake “AI” on saturated zones).
+    if (gap <= 4) return null;
+    const senior = this.seniorMode();
 
-    // Only suggest if coverage is below 80%
-    if (lowestCoverage >= 80) return null;
+    const impactPercent = Math.min(
+      senior ? 88 : 82,
+      Math.round(gap * (senior ? 0.82 : 0.71))
+    );
 
-    // Generate suggestion based on lowest coverage service
+    let populationServed: number;
+    if (senior) {
+      populationServed = Math.round(
+        zone.population * SENIOR_POPULATION_SHARE * (gap / 100) * NEW_SITE_GAP_CAPTURE * 1.25
+      );
+    } else {
+      populationServed = Math.round(zone.population * (gap / 100) * NEW_SITE_GAP_CAPTURE);
+    }
+    populationServed = Math.max(120, populationServed);
+
     const serviceNames: Record<ServiceType, string> = {
       pharmacy: 'Pharmacy',
-      hospitals: 'Hospital/Clinic',
-      parks: 'Green Space/Park'
+      hospitals: 'Clinic',
+      parks: 'Park',
     };
 
-    const impact = Math.round((100 - lowestCoverage) * 0.8);
-    const populationServed = Math.round(zone.population * (100 - lowestCoverage) / 100);
-
-    // Generate coords slightly offset from zone center
-    const offsetLat = (Math.random() - 0.5) * 0.002;
-    const offsetLng = (Math.random() - 0.5) * 0.002;
+    const [dLat, dLng] = this.suggestionOffset(zone.id, service);
+    const targetCov = Math.min(95, coverage + Math.round(gap * 0.55));
 
     return {
       zoneId: zone.id,
-      serviceType: serviceNames[lowestService],
-      coords: [zone.coords[0] + offsetLat, zone.coords[1] + offsetLng],
-      title: `Add a new ${serviceNames[lowestService]} to improve coverage from ${lowestCoverage}% to ${Math.min(95, lowestCoverage + impact)}%`,
-      description: `Adding ${serviceNames[lowestService]} at this location will serve ${populationServed.toLocaleString()} residents with ${impact}% coverage improvement.`,
+      serviceType: serviceNames[service],
+      coords: [zone.coords[0] + dLat, zone.coords[1] + dLng],
+      title: `Optimal site for a new ${serviceNames[service].toLowerCase()} (${zone.name})`,
+      description: senior
+        ? `Senior-focused gap: ~${gap}% under target for ${serviceNames[service]} here. One well-placed site could lift coverage toward ~${targetCov}% and reach ~${populationServed.toLocaleString()} older adults in this sheiakha (from zone population ${zone.population.toLocaleString()}).`
+        : `Service gap ~${gap}% vs benchmark for ${serviceNames[service]} in ${zone.name}. A new facility here could move coverage toward ~${targetCov}% and benefit ~${populationServed.toLocaleString()} people in the zone.`,
       populationServed,
-      impactPercent: impact
+      impactPercent,
     };
   }
 
   getAllAISuggestions(): AISuggestion[] {
-    // Return both hardcoded and dynamically generated
-    const allZones = this.mockZones;
-    return allZones
+    return this.mockZones
       .map(z => this.getAISuggestionForZone(z.id))
       .filter((s): s is AISuggestion => s !== null);
   }

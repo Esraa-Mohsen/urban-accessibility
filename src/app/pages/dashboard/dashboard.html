@@ -37,8 +37,8 @@
     </div>
   </div>
 
-  <!-- Zone Table -->
-  <div class="glass-panel p-6 overflow-hidden">
+  <!-- Zone Table (data-senior-mode ties CD to senior signal so coverage bars refresh) -->
+  <div class="glass-panel p-6 overflow-hidden" [attr.data-senior-mode]="dataService.seniorMode()">
     <h3 class="text-base font-bold text-white mb-5">{{ 'DASHBOARD.TABLE_TITLE' | translate }}</h3>
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse text-sm">

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, effect } from '@angular/core';
+import { Component, OnInit, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
@@ -12,9 +12,19 @@ import { AnimatedCounter } from '../../components/animated-counter/animated-coun
   styleUrl: './home.scss',
 })
 export class Home implements OnInit {
-  pharmacyCoverage = signal(62);
-  parksCoverage = signal(51);
-  hospitalsCoverage = signal(47);
+  /** District-wide population-weighted coverage — same formula as dashboard (KML counts vs zone pop). */
+  pharmacyCoverage = computed(() => {
+    this.dataService.seniorMode();
+    return this.dataService.getDistrictPopulationCoverageForService('pharmacy');
+  });
+  parksCoverage = computed(() => {
+    this.dataService.seniorMode();
+    return this.dataService.getDistrictPopulationCoverageForService('parks');
+  });
+  hospitalsCoverage = computed(() => {
+    this.dataService.seniorMode();
+    return this.dataService.getDistrictPopulationCoverageForService('hospitals');
+  });
   totalPopulation = computed(() => this.dataService.getZones().reduce((s, z) => s + z.population, 0));
 
   // Live service status
@@ -48,18 +58,19 @@ export class Home implements OnInit {
     return icons[this.activeService()];
   });
 
-  // Real-time KPIs from data service
-  populationCoverage = computed(() => this.dataService.getPopulationCoverage());
-  accessibilityScore = computed(() => this.dataService.getOverallAccessibilityScore());
+  // Real-time KPIs — read signals in computed so Senior Mode / active service invalidate correctly
+  populationCoverage = computed(() => {
+    this.dataService.seniorMode();
+    this.dataService.activeService();
+    return this.dataService.getPopulationCoverage();
+  });
+  accessibilityScore = computed(() => {
+    this.dataService.seniorMode();
+    this.dataService.activeService();
+    return this.dataService.getOverallAccessibilityScore();
+  });
 
-  constructor(public dataService: DataService) {
-    // React to service/senior mode changes for live updates
-    effect(() => {
-      const _ = this.dataService.activeService();
-      const __ = this.dataService.seniorMode();
-      // Triggers re-computation of populationCoverage and accessibilityScore
-    });
-  }
+  constructor(public dataService: DataService) {}
 
   ngOnInit() {
     // Static values are already set, animated counter handles animation

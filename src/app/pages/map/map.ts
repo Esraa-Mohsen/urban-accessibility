@@ -1,12 +1,13 @@
 import { Component, OnInit, OnDestroy, computed, effect, signal, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 import * as L from 'leaflet';
 import { DataService, Zone, ServiceType, CityReport, AISuggestion, ServiceLocation } from '../../services/data';
 
 @Component({
   selector: 'app-map',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './map.html',
   styleUrl: './map.scss',
 })
@@ -75,9 +76,11 @@ export class Map implements OnInit, OnDestroy {
     return this.dataService.getPopulationCoverage();
   });
 
-  // AI suggestion for selected zone
+  // AI suggestion for selected zone (recomputes on zone, service, senior mode)
   currentAISuggestion = computed((): AISuggestion | null => {
     if (!this.selectedZone) return null;
+    this.dataService.seniorMode();
+    this.dataService.activeService();
     return this.dataService.getAISuggestionForZone(this.selectedZone.id);
   });
 
@@ -113,6 +116,14 @@ export class Map implements OnInit, OnDestroy {
           });
         }
       });
+    });
+
+    // AI map pins follow active service + senior mode (same formulas as side panel)
+    effect(() => {
+      this.dataService.seniorMode();
+      this.dataService.activeService();
+      if (!this.map) return;
+      this.refreshAIMarkers();
     });
 
     // React to new city reports
@@ -448,7 +459,14 @@ export class Map implements OnInit, OnDestroy {
   }
 
   // ═══ AI SUGGESTION MARKERS ═══
+  private refreshAIMarkers() {
+    this.aiMarkers.forEach(m => m.remove());
+    this.aiMarkers = [];
+    this.addAIMarkers();
+  }
+
   private addAIMarkers() {
+    if (!this.map) return;
     const suggestions = this.dataService.getAllAISuggestions();
     suggestions.forEach(s => {
       const icon = L.divIcon({

@@ -79,6 +79,7 @@
   "SUGGESTIONS": {
     "TITLE": "Latest Suggestions",
     "VIEW_ALL": "View All",
-    "ADD_NEW": "Add New Suggestion"
+    "ADD_NEW": "Add New Suggestion",
+    "AI_SUGGESTION": "AI Suggestion"
   }
 }

@@ -1,4 +1,4 @@
-import { Component, computed, OnInit, effect, signal } from '@angular/core';
+import { Component, computed, OnInit } from '@angular/core';
 import { DataService, AccessibilityIssue, Suggestion, Zone, ServiceType } from '../../services/data';
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
@@ -15,19 +15,20 @@ export class StatsCards implements OnInit {
   suggestions: Suggestion[] = [];
   zones: Zone[] = [];
 
-  // KPI computed values (same as Home)
-  populationCoverage = computed(() => this.dataService.getPopulationCoverage());
-  accessibilityScore = computed(() => this.dataService.getOverallAccessibilityScore());
+  // KPI computed values (same as Home) — must read signals here so computeds re-run when they change
+  populationCoverage = computed(() => {
+    this.dataService.seniorMode();
+    this.dataService.activeService();
+    return this.dataService.getPopulationCoverage();
+  });
+  accessibilityScore = computed(() => {
+    this.dataService.seniorMode();
+    this.dataService.activeService();
+    return this.dataService.getOverallAccessibilityScore();
+  });
   activeService = computed(() => this.dataService.activeService());
 
-  constructor(public dataService: DataService) {
-    // React to service/senior mode changes for live updates
-    effect(() => {
-      const _ = this.dataService.activeService();
-      const __ = this.dataService.seniorMode();
-      // Triggers re-computation of populationCoverage and accessibilityScore
-    });
-  }
+  constructor(public dataService: DataService) {}
 
   ngOnInit() {
     this.issues = this.dataService.getIssues();
@@ -40,11 +41,13 @@ export class StatsCards implements OnInit {
 
   // Dynamic service coverage based on active service
   serviceCoverage = computed(() => {
-    const service = this.activeService();
+    this.dataService.seniorMode();
+    const service = this.dataService.activeService();
     const totalPop = this.zones.reduce((s, z) => s + z.population, 0);
+    if (totalPop <= 0) return 0;
     const coveredPop = this.zones.reduce((sum, z) => {
       const cov = this.dataService.getZoneCoverageForService(z, service);
-      return sum + (z.population * cov / 100);
+      return sum + (z.population * cov) / 100;
     }, 0);
     return Math.round((coveredPop / totalPop) * 100) || 0;
   });
