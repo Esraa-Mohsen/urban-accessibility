@@ -81,5 +81,16 @@
     "VIEW_ALL": "عرض الكل",
     "ADD_NEW": "إضافة اقتراح جديد",
     "AI_SUGGESTION": "اقتراح ذكي"
+  },
+  "MAP": {
+    "SERVICE_PHARMACY": "صيدلية",
+    "SERVICE_PARKS": "حديقة",
+    "SERVICE_HOSPITALS": "مستشفى / عيادة",
+    "AI_TITLE": "موقع مقترح لخدمة {{service}} — {{zone}}",
+    "AI_DESC_SENIOR": "فجوة بتركيز كبار السن: ~{{gap}}% تحت الهدف لخدمة {{service}} في {{zone}}. موقع مناسب قد يرفع التغطية نحو ~{{target}}% ويصل إلى ~{{served}} من كبار السن (سكان الشياخة {{pop}}).",
+    "AI_DESC_NORMAL": "فجوة خدمة ~{{gap}}% مقارنة بالمعيار لـ {{service}} في {{zone}}. منشأة جديدة قد ترفع التغطية نحو ~{{target}}% وتفيد ~{{served}} شخصاً (سكان الشياخة {{pop}}).",
+    "AI_FOR_ZONE": "الشياخة",
+    "AI_IMPACT": "الأثر",
+    "AI_SERVED": "عدد المستفيدين"
   }
 }

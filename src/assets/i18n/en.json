@@ -81,5 +81,16 @@
     "VIEW_ALL": "View All",
     "ADD_NEW": "Add New Suggestion",
     "AI_SUGGESTION": "AI Suggestion"
+  },
+  "MAP": {
+    "SERVICE_PHARMACY": "Pharmacy",
+    "SERVICE_PARKS": "Park",
+    "SERVICE_HOSPITALS": "Hospital / clinic",
+    "AI_TITLE": "Optimal site for {{service}} — {{zone}}",
+    "AI_DESC_SENIOR": "Senior-focused gap: ~{{gap}}% under target for {{service}} in {{zone}}. One well-placed site could lift coverage toward ~{{target}}% and reach ~{{served}} older adults (zone population {{pop}}).",
+    "AI_DESC_NORMAL": "Service gap ~{{gap}}% vs benchmark for {{service}} in {{zone}}. A new facility could move coverage toward ~{{target}}% and benefit ~{{served}} people (zone population {{pop}}).",
+    "AI_FOR_ZONE": "Zone",
+    "AI_IMPACT": "Impact",
+    "AI_SERVED": "People served"
   }
 }

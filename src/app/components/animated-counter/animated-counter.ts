@@ -57,10 +57,11 @@ export class AnimatedCounter implements OnInit, OnChanges {
   }
 
   private formatValue(val: number): string {
-    const formatted = val.toFixed(this.decimals);
-    // Add thousand separators
-    const parts = formatted.split('.');
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    return this.prefix + parts.join('.') + this.suffix;
+    const n = Number.isFinite(val) ? val : 0;
+    const s = n.toLocaleString('en-US', {
+      minimumFractionDigits: this.decimals,
+      maximumFractionDigits: this.decimals,
+    });
+    return this.prefix + s + this.suffix;
   }
 }

@@ -50,15 +50,22 @@ export interface CityReport {
   timestamp: string;
 }
 
+export type AIServiceTypeKey = 'PHARMACY' | 'PARKS' | 'HOSPITALS';
+
 // AI Suggestion marker
 export interface AISuggestion {
   zoneId: string;
-  serviceType: string;
+  zoneName: string;
+  zonePopulation: number;
+  serviceTypeKey: AIServiceTypeKey;
   coords: [number, number];
+  /** Short label for map popups (Latin). */
   title: string;
-  description: string;
   populationServed: number;
   impactPercent: number;
+  gapPercent: number;
+  targetCoverage: number;
+  seniorCopy: boolean;
 }
 
 export type ServiceType = 'pharmacy' | 'parks' | 'hospitals';
@@ -513,6 +520,30 @@ export class DataService {
     return { tier: 'underserved', color: '#ef4444' };
   }
 
+  /** True if [lat,lng] lies inside the zone’s modeled service disc (center + radius in meters). */
+  isPointInsideZone(lat: number, lng: number, zone: Zone): boolean {
+    return this.calculateDistance(lat, lng, zone.coords[0], zone.coords[1]) <= zone.radius;
+  }
+
+  /**
+   * Local access % near a map click from KML points within a walk radius
+   * (tighter radius in Senior Mode). Independent of zone aggregate; blended in AI planner.
+   */
+  getLocalCoverageNearPoint(lat: number, lng: number, service: ServiceType): number {
+    const senior = this.seniorMode();
+    const radiusM = senior ? 650 : 1000;
+    const types: ServiceLocation['type'][] =
+      service === 'pharmacy' ? ['pharmacy'] : service === 'hospitals' ? ['hospital'] : ['park'];
+    let n = 0;
+    for (const s of REAL_SERVICES) {
+      if (!types.includes(s.type)) continue;
+      const d = this.calculateDistance(lat, lng, s.coords[0], s.coords[1]);
+      if (d <= radiusM) n++;
+    }
+    const perUnit = senior ? 24 : 20;
+    return Math.min(95, Math.max(6, Math.round(10 + n * perUnit)));
+  }
+
   private suggestionOffset(zoneId: string, service: ServiceType): [number, number] {
     const seed = zoneId + service;
     let h = 0;
@@ -559,6 +590,24 @@ export class DataService {
     return this.tierFromCoverage(this.getZoneCoverageForService(zone, service)).color;
   }
 
+  /**
+   * Coverage % at a map click: blends zone aggregate with local KML density (same model as AI card).
+   */
+  getCoverageAtAnchor(zone: Zone, service: ServiceType, anchor: [number, number]): number {
+    const zoneCovAdj = this.getZoneCoverageForService(zone, service);
+    let effectiveCov = zoneCovAdj;
+    if (this.isPointInsideZone(anchor[0], anchor[1], zone)) {
+      const localCov = this.getLocalCoverageNearPoint(anchor[0], anchor[1], service);
+      effectiveCov = Math.round(zoneCovAdj * 0.38 + localCov * 0.62);
+      effectiveCov = Math.min(95, Math.max(5, effectiveCov));
+    }
+    return effectiveCov;
+  }
+
+  getZoneColorAtAnchor(zone: Zone, service: ServiceType, anchor: [number, number]): string {
+    return this.tierFromCoverage(this.getCoverageAtAnchor(zone, service, anchor)).color;
+  }
+
   getZoneCoverageForService(zone: Zone, service: ServiceType): number {
     const base = this.computeCoverageFromRealServices(zone, service);
     return this.seniorMode() ? Math.max(5, base - 20) : base;
@@ -582,19 +631,17 @@ export class DataService {
     return Math.round((coveredPop / totalPop) * 100);
   }
 
-  // ── AI Planner (location–allocation style metrics from zone pop + active service coverage) ──
-  getAISuggestionForZone(zoneId: string): AISuggestion | null {
+  // ── AI Planner (click-aware: blends zone KPI with local KML density near anchor point) ──
+  getAISuggestionForZone(zoneId: string, anchor?: [number, number] | null): AISuggestion | null {
     const zone = this.mockZones.find(z => z.id === zoneId);
     if (!zone) return null;
 
     const service = this.activeService();
-    const baseCoverage = this.computeCoverageFromRealServices(zone, service);
-    const coverage = this.seniorMode()
-      ? Math.max(5, baseCoverage - 20)
-      : baseCoverage;
+    const pt: [number, number] = anchor ?? zone.coords;
 
-    const gap = Math.max(0, 100 - coverage);
-    // Hide only when the modeled gap is negligible (avoids fake “AI” on saturated zones).
+    const effectiveCov = this.getCoverageAtAnchor(zone, service, pt);
+
+    const gap = Math.max(0, 100 - effectiveCov);
     if (gap <= 4) return null;
     const senior = this.seniorMode();
 
@@ -613,31 +660,41 @@ export class DataService {
     }
     populationServed = Math.max(120, populationServed);
 
-    const serviceNames: Record<ServiceType, string> = {
-      pharmacy: 'Pharmacy',
-      hospitals: 'Clinic',
-      parks: 'Park',
+    const serviceKey: Record<ServiceType, AIServiceTypeKey> = {
+      pharmacy: 'PHARMACY',
+      parks: 'PARKS',
+      hospitals: 'HOSPITALS',
     };
 
-    const [dLat, dLng] = this.suggestionOffset(zone.id, service);
-    const targetCov = Math.min(95, coverage + Math.round(gap * 0.55));
+    const [dLat, dLng] = this.suggestionOffset(zone.id + `${pt[0].toFixed(4)}`, service);
+    const targetCov = Math.min(95, effectiveCov + Math.round(gap * 0.55));
+
+    const coords: [number, number] = [
+      pt[0] + dLat * 0.45,
+      pt[1] + dLng * 0.45,
+    ];
+
+    const sk = serviceKey[service];
+    const title = `${zone.name} · +${impactPercent}%`;
 
     return {
       zoneId: zone.id,
-      serviceType: serviceNames[service],
-      coords: [zone.coords[0] + dLat, zone.coords[1] + dLng],
-      title: `Optimal site for a new ${serviceNames[service].toLowerCase()} (${zone.name})`,
-      description: senior
-        ? `Senior-focused gap: ~${gap}% under target for ${serviceNames[service]} here. One well-placed site could lift coverage toward ~${targetCov}% and reach ~${populationServed.toLocaleString()} older adults in this sheiakha (from zone population ${zone.population.toLocaleString()}).`
-        : `Service gap ~${gap}% vs benchmark for ${serviceNames[service]} in ${zone.name}. A new facility here could move coverage toward ~${targetCov}% and benefit ~${populationServed.toLocaleString()} people in the zone.`,
+      zoneName: zone.name,
+      zonePopulation: zone.population,
+      serviceTypeKey: sk,
+      coords,
+      title,
       populationServed,
       impactPercent,
+      gapPercent: gap,
+      targetCoverage: targetCov,
+      seniorCopy: senior,
     };
   }
 
   getAllAISuggestions(): AISuggestion[] {
     return this.mockZones
-      .map(z => this.getAISuggestionForZone(z.id))
+      .map(z => this.getAISuggestionForZone(z.id, z.coords))
       .filter((s): s is AISuggestion => s !== null);
   }
 

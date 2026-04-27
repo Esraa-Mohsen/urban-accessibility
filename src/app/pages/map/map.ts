@@ -1,7 +1,18 @@
-import { Component, OnInit, OnDestroy, computed, effect, signal, NgZone } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  AfterViewInit,
+  ViewChild,
+  ElementRef,
+  computed,
+  effect,
+  signal,
+  NgZone,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import * as L from 'leaflet';
 import { DataService, Zone, ServiceType, CityReport, AISuggestion, ServiceLocation } from '../../services/data';
 
@@ -11,8 +22,11 @@ import { DataService, Zone, ServiceType, CityReport, AISuggestion, ServiceLocati
   templateUrl: './map.html',
   styleUrl: './map.scss',
 })
-export class Map implements OnInit, OnDestroy {
+export class Map implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('mapHost') private mapHost?: ElementRef<HTMLElement>;
+
   private map: L.Map | undefined;
+  private mapResizeObserver: ResizeObserver | null = null;
   private zoneLayers: L.Circle[] = [];
   private selectedZoneHighlight: L.Circle | null = null;
   private zoneBoundaryLayers: L.LayerGroup | null = null;
@@ -36,6 +50,11 @@ export class Map implements OnInit, OnDestroy {
   selectedZone: Zone | null = null;
   showPanel = signal(false);
 
+  /** Point on the map used to blend local KML density into AI metrics (changes when you click inside a zone). */
+  suggestionAnchor = signal<[number, number] | null>(null);
+  /** Rebuilds translated AI copy when the user switches language. */
+  private i18nTick = signal(0);
+
   // Fix My City
   showFixModal = signal(false);
   fixDescription = '';
@@ -56,12 +75,18 @@ export class Map implements OnInit, OnDestroy {
   showMobileLayers = signal(false);
   showMobilePanel = signal(false);
 
-  // KPI computed values
+  // KPI: coverage at the clicked point inside the zone (same blend as AI planner)
   currentCoverage = computed(() => {
     if (!this.selectedZone) return 0;
-    // Read seniorMode to make this reactive to Senior Mode changes
-    const seniorMode = this.dataService.seniorMode();
-    return this.dataService.getZoneCoverageForService(this.selectedZone, this.activeService());
+    this.dataService.seniorMode();
+    this.dataService.activeService();
+    this.suggestionAnchor();
+    const anchor = this.suggestionAnchor() ?? this.selectedZone.coords;
+    return this.dataService.getCoverageAtAnchor(
+      this.selectedZone,
+      this.activeService(),
+      anchor
+    );
   });
 
   accessibilityScore = computed(() => {
@@ -76,15 +101,36 @@ export class Map implements OnInit, OnDestroy {
     return this.dataService.getPopulationCoverage();
   });
 
-  // AI suggestion for selected zone (recomputes on zone, service, senior mode)
-  currentAISuggestion = computed((): AISuggestion | null => {
-    if (!this.selectedZone) return null;
+  /** AI side panel: suggestion + translate params (same numbers in EN/AR; digits stay Western). */
+  aiPanelI18n = computed(() => {
+    this.i18nTick();
     this.dataService.seniorMode();
     this.dataService.activeService();
-    return this.dataService.getAISuggestionForZone(this.selectedZone.id);
+    if (!this.selectedZone) return null;
+    const anchor = this.suggestionAnchor() ?? this.selectedZone.coords;
+    const s = this.dataService.getAISuggestionForZone(this.selectedZone.id, anchor);
+    if (!s) return null;
+    const svc = this.translate.instant('MAP.SERVICE_' + s.serviceTypeKey);
+    return {
+      suggestion: s,
+      titleParams: { service: svc, zone: s.zoneName },
+      descParams: {
+        gap: s.gapPercent,
+        service: svc,
+        zone: s.zoneName,
+        target: s.targetCoverage,
+        served: s.populationServed.toLocaleString('en-US'),
+        pop: s.zonePopulation.toLocaleString('en-US'),
+      },
+    };
   });
 
-  constructor(public dataService: DataService, private ngZone: NgZone) {
+  currentAISuggestion = computed((): AISuggestion | null => this.aiPanelI18n()?.suggestion ?? null);
+
+  constructor(public dataService: DataService, private ngZone: NgZone, private translate: TranslateService) {
+    this.translate.onLangChange.subscribe(() => {
+      this.ngZone.run(() => this.i18nTick.update(v => v + 1));
+    });
     // React to service change — update zone colors and service markers
     effect(() => {
       const service = this.dataService.activeService();
@@ -100,22 +146,9 @@ export class Map implements OnInit, OnDestroy {
 
     // React to senior mode change
     effect(() => {
-      const isSenior = this.dataService.seniorMode();
-      // Update zone colors when senior mode changes
+      this.dataService.seniorMode();
       this.updateZoneColors(this.dataService.activeService());
-      // Update zone circle radii for seniors (smaller walking areas)
-      const seniorFactor = isSenior ? 0.7 : 1; // 30% smaller for seniors
-      this.zoneLayers.forEach((circle, index) => {
-        const zone = this.zones[index];
-        if (zone) {
-          circle.setRadius(zone.radius * seniorFactor);
-          // Also reduce opacity for seniors to indicate lower coverage
-          circle.setStyle({
-            fillOpacity: isSenior ? 0.25 : 0.4,
-            weight: isSenior ? 2 : 3
-          });
-        }
-      });
+      this.applySeniorWalkingAdjustments();
     });
 
     // AI map pins follow active service + senior mode (same formulas as side panel)
@@ -135,44 +168,41 @@ export class Map implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.zones = this.dataService.getZones();
-    this.initMap();
-
-    // Add resize listener for responsive map
     window.addEventListener('resize', this.handleResize);
+  }
 
-    // Wait for map to be fully ready before adding layers
-    // This fixes the partial circle rendering issue
-    if (this.map) {
-      this.map.whenReady(() => {
-        // Force map to calculate correct size
-        this.map!.invalidateSize();
-
-        // Use requestAnimationFrame to ensure DOM is fully painted
-        requestAnimationFrame(() => {
-          this.addZoneBoundaries();
-          this.addRoadNetwork();
-          this.addBuildingBlocks();
-          this.addPublicPlaces();
-          this.addSunlightOverlay();
-          this.addAIMarkers();
-          this.addRealServiceMarkers();
-
-          // Force another invalidate after all layers added
-          setTimeout(() => {
-            this.map?.invalidateSize();
-            this.map?.invalidateSize(); // Second call ensures proper rendering
-          }, 100);
-        });
-      });
-    }
+  ngAfterViewInit(): void {
+    // Leaflet reads container size at init; ngOnInit runs before layout, so the map
+    // often gets 0×0 and stays blank until a refresh. Double rAF defers until after paint.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => this.initMap());
+    });
   }
 
   ngOnDestroy() {
+    this.mapResizeObserver?.disconnect();
+    this.mapResizeObserver = null;
     if (this.map) {
       this.map.remove();
+      this.map = undefined;
     }
-    // Remove resize listener
     window.removeEventListener('resize', this.handleResize);
+  }
+
+  /** Radii/opacity for senior walking distance — shared by effect and post-init sync. */
+  private applySeniorWalkingAdjustments() {
+    const isSenior = this.dataService.seniorMode();
+    const seniorFactor = isSenior ? 0.7 : 1;
+    this.zoneLayers.forEach((circle, index) => {
+      const zone = this.zones[index];
+      if (zone) {
+        circle.setRadius(zone.radius * seniorFactor);
+        circle.setStyle({
+          fillOpacity: isSenior ? 0.25 : 0.4,
+          weight: isSenior ? 2 : 3,
+        });
+      }
+    });
   }
 
   private handleResize = () => {
@@ -188,15 +218,14 @@ export class Map implements OnInit, OnDestroy {
     this.dataService.activeService.set(service);
   }
 
-  selectZone(zone: Zone) {
+  selectZone(zone: Zone, anchor?: [number, number]) {
     this.ngZone.run(() => {
       this.selectedZone = zone;
+      this.suggestionAnchor.set(anchor ?? [zone.coords[0], zone.coords[1]]);
       this.showPanel.set(true);
-      // Auto-show mobile panel when zone selected
       this.showMobilePanel.set(true);
     });
 
-    // Add visual highlight on the map
     this.highlightSelectedZone(zone);
   }
 
@@ -235,7 +264,12 @@ export class Map implements OnInit, OnDestroy {
   }
 
   getZoneColor(zone: Zone): string {
-    return this.dataService.getZoneColorForService(zone, this.activeService());
+    const svc = this.activeService();
+    if (this.selectedZone?.id === zone.id) {
+      const anchor = this.suggestionAnchor() ?? zone.coords;
+      return this.dataService.getZoneColorAtAnchor(zone, svc, anchor);
+    }
+    return this.dataService.getZoneColorForService(zone, svc);
   }
 
   // ── Fix My City ──
@@ -330,12 +364,21 @@ export class Map implements OnInit, OnDestroy {
 
   // ═══ MAP INIT ═══
   private initMap() {
-    // Use preferCanvas for better performance with many markers
-    this.map = L.map('accessibility-map', {
+    const el = this.mapHost?.nativeElement;
+    if (!el || this.map) return;
+
+    this.map = L.map(el, {
       zoomControl: false,
       attributionControl: false,
-      preferCanvas: true
+      preferCanvas: true,
     }).setView([30.5965, 32.2715], 14);
+
+    if (typeof ResizeObserver !== 'undefined') {
+      this.mapResizeObserver = new ResizeObserver(() => {
+        this.map?.invalidateSize({ animate: false });
+      });
+      this.mapResizeObserver.observe(el);
+    }
 
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
 
@@ -357,7 +400,9 @@ export class Map implements OnInit, OnDestroy {
         className: zone.status === 'critical' ? 'critical-zone-circle' : ''
       }).addTo(this.map!);
 
-      circle.on('click', () => this.selectZone(zone));
+      circle.on('click', (e: L.LeafletMouseEvent) => {
+        this.selectZone(zone, [e.latlng.lat, e.latlng.lng]);
+      });
 
       // Label
       const label = L.divIcon({
@@ -371,14 +416,40 @@ export class Map implements OnInit, OnDestroy {
       this.zoneLayers.push(circle);
 
       if (zone.id === 'z3') {
-        this.selectedZone = zone;
-        this.showPanel.set(true);
+        this.ngZone.run(() => {
+          this.selectedZone = zone;
+          this.suggestionAnchor.set([zone.coords[0], zone.coords[1]]);
+          this.showPanel.set(true);
+        });
       }
     });
 
-    // Fix My City map click handler when picking
     this.map.on('click', (e: L.LeafletMouseEvent) => {
-      // Only process when picking location is active
+      if (this.fixPickingLocation()) return;
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+      const hit = this.zones.find(z => this.dataService.isPointInsideZone(lat, lng, z));
+      if (hit) {
+        this.ngZone.run(() => this.selectZone(hit, [lat, lng]));
+      }
+    });
+
+    this.map.whenReady(() => {
+      this.map!.invalidateSize();
+      requestAnimationFrame(() => {
+        this.addZoneBoundaries();
+        this.addRoadNetwork();
+        this.addBuildingBlocks();
+        this.addPublicPlaces();
+        this.addSunlightOverlay();
+        this.updateZoneColors(this.dataService.activeService());
+        this.applySeniorWalkingAdjustments();
+        this.addRealServiceMarkers();
+        this.refreshAIMarkers();
+        setTimeout(() => {
+          this.map?.invalidateSize();
+        }, 100);
+      });
     });
   }
 
@@ -468,6 +539,7 @@ export class Map implements OnInit, OnDestroy {
   private addAIMarkers() {
     if (!this.map) return;
     const suggestions = this.dataService.getAllAISuggestions();
+    const typeEn: Record<string, string> = { PHARMACY: 'Pharmacy', PARKS: 'Park', HOSPITALS: 'Hospital' };
     suggestions.forEach(s => {
       const icon = L.divIcon({
         className: '',
@@ -486,8 +558,8 @@ export class Map implements OnInit, OnDestroy {
         <div style="font-family:Inter,sans-serif;padding:4px 0;min-width:180px;">
           <div style="font-size:10px;color:#8b5cf6;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">🤖 AI Suggestion</div>
           <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:#1e293b;">${s.title}</div>
-          <div style="font-size:11px;color:#64748b;">Type: <strong>${s.serviceType}</strong></div>
-          <div style="font-size:11px;color:#64748b;">Serves: <strong>${s.populationServed.toLocaleString()}</strong> residents</div>
+          <div style="font-size:11px;color:#64748b;">Type: <strong>${typeEn[s.serviceTypeKey] || s.serviceTypeKey}</strong></div>
+          <div style="font-size:11px;color:#64748b;">Serves: <strong>${s.populationServed.toLocaleString('en-US')}</strong> residents</div>
           <div style="font-size:11px;color:#64748b;">Impact: <strong style="color:#10b981;">+${s.impactPercent}%</strong></div>
         </div>
       `, { className: 'ai-popup' });

@@ -1,7 +1,7 @@
-<div class="flex flex-col lg:flex-row gap-3 relative" style="height: calc(100vh - 140px); min-height: 600px;">
+<div class="flex flex-col md:flex-row md:items-start gap-2 md:gap-3 relative min-h-[600px] md:min-h-[calc(100vh-6rem)]">
 
   <!-- ═══ MAP AREA ═══ -->
-  <div class="flex-1 relative rounded-2xl overflow-hidden order-1" style="min-height: 400px; height: 100%;">
+  <div class="flex-1 relative rounded-2xl overflow-hidden order-1 min-h-[400px] w-full md:min-h-0 md:h-[calc(100vh-6rem)]">
     <!-- Floating Header Overlay -->
     <div class="absolute top-0 left-0 right-0 p-2 md:p-3 z-[1000] pointer-events-none flex flex-col md:flex-row justify-between items-start gap-2">
       <!-- Title + Service Selector -->
@@ -54,7 +54,7 @@
       </button>
 
       <!-- Collapsible Layer Controls for Desktop/Tablet -->
-      <div class="hidden lg:flex flex-col gap-1.5 md:gap-2">
+      <div class="hidden md:flex flex-col gap-1.5 md:gap-2">
         <!-- Real Services -->
         <button (click)="toggleRealServices()"
           class="glass-float px-2 lg:px-4 py-1.5 lg:py-2 flex items-center gap-1.5 lg:gap-2 text-[10px] lg:text-xs font-bold transition-all cursor-pointer animate-slide-in-up"
@@ -103,13 +103,13 @@
 
       <!-- Mobile/Tablet: Compact Menu Toggle -->
       <button (click)="showMobileLayers.set(!showMobileLayers())"
-        class="lg:hidden glass-float px-2 py-1.5 flex items-center gap-1.5 text-[10px] font-bold text-white cursor-pointer animate-slide-in-up"
+        class="md:hidden glass-float px-2 py-1.5 flex items-center gap-1.5 text-[10px] font-bold text-white cursor-pointer animate-slide-in-up"
         style="animation-delay: 0.1s">
         <span class="text-sm">☰</span> Layers
       </button>
 
       <!-- Mobile/Tablet: Expanded Layers Menu -->
-      <div *ngIf="showMobileLayers()" class="lg:hidden flex flex-col gap-1 bg-slate-900/90 rounded-lg p-2 border border-white/10">
+      <div *ngIf="showMobileLayers()" class="md:hidden flex flex-col gap-1 bg-slate-900/90 rounded-lg p-2 border border-white/10">
         <button (click)="toggleRealServices()"
           class="px-2 py-1 flex items-center gap-1.5 text-[10px] font-bold transition-all cursor-pointer"
           [class.text-emerald-400]="showRealServices()"
@@ -151,65 +151,64 @@
     </div>
     
     <!-- Actual Map -->
-    <div id="accessibility-map" class="absolute inset-0 w-full h-full bg-slate-900 rounded-2xl"></div>
+    <div #mapHost id="accessibility-map" class="absolute inset-0 w-full h-full bg-slate-900 rounded-2xl"></div>
   </div>
 
   <!-- ═══ SIDE PANEL - All Screens ═══ -->
   <!-- Desktop: Side panel on right | Mobile/Tablet: Below map -->
   <!-- Hidden on mobile if no zone selected, visible on desktop always -->
-  <div class="w-full lg:w-80 xl:w-96 flex-col gap-3 overflow-y-auto custom-scrollbar shrink-0 order-2"
-       [class.hidden]="!selectedZone"
-       [class.lg.flex]="true"
-       style="height: auto; max-height: 500px; min-height: 200px;">
+  <!-- Sidebar: no inner scroll on lg; compact spacing so zone + AI fit in one view -->
+  <div class="w-full md:w-72 lg:w-80 xl:w-96 flex flex-col gap-1.5 md:gap-2 shrink-0 order-2 max-h-[min(72vh,560px)] overflow-y-auto custom-scrollbar md:max-h-none md:overflow-visible md:self-start"
+       [class.hidden]="!selectedZone">
 
     <!-- Zone Details Card -->
-    <div class="glass-panel p-4 border-t-4 transition-all duration-500"
+    <div class="glass-panel p-2.5 md:p-3 border-t-4 transition-all duration-500"
          [ngStyle]="{'border-top-color': selectedZone ? getZoneColor(selectedZone) : '#334155'}"
          [class.critical-glow]="selectedZone?.status === 'critical'">
       <ng-container *ngIf="selectedZone; else noSelection">
-        <h3 class="text-lg font-bold text-white mb-3 animate-fade-in">{{ selectedZone.name }}</h3>
+        <h3 class="text-sm md:text-base font-bold text-white mb-1.5 md:mb-2 animate-fade-in leading-tight">{{ selectedZone.name }}</h3>
         
-        <div class="space-y-2.5 mb-3 stagger-children">
-          <div class="flex justify-between items-center text-slate-300 text-sm animate-slide-in-up">
-            <span class="flex items-center gap-2"><span class="text-sm">👥</span> Population</span>
-            <span class="font-bold text-white">{{ selectedZone.population | number }}</span>
+        <div class="space-y-1.5 mb-1.5 md:mb-2 stagger-children">
+          <div class="flex justify-between items-center text-slate-300 text-[11px] md:text-xs animate-slide-in-up">
+            <span class="flex items-center gap-1.5 md:gap-2"><span class="text-xs md:text-sm">👥</span> Population</span>
+            <span class="font-bold text-white">{{ selectedZone.population | number:'1.0-0':'en-US' }}</span>
           </div>
           
-          <div class="flex justify-between items-center text-slate-300 text-sm animate-slide-in-up">
-            <span class="flex items-center gap-2">
-              <span class="text-sm">🎯</span> Coverage 
-              <span *ngIf="dataService.seniorMode()" class="text-[9px] text-amber-400 font-bold px-1 rounded bg-amber-400/10">-20%</span>
+          <div class="flex justify-between items-center text-slate-300 text-[11px] md:text-xs animate-slide-in-up">
+            <span class="flex items-center gap-1.5">
+              <span class="text-xs md:text-sm">🎯</span> Coverage 
+              <span *ngIf="dataService.seniorMode()" class="text-[8px] text-amber-400 font-bold px-1 rounded bg-amber-400/10">-20%</span>
             </span>
-            <span class="font-extrabold text-lg animate-count-up" [ngStyle]="{'color': getZoneColor(selectedZone)}">
+            <span class="font-extrabold text-sm md:text-base animate-count-up" [ngStyle]="{'color': getZoneColor(selectedZone)}">
               {{ currentCoverage() }}%
             </span>
           </div>
           
-          <div class="w-full bg-slate-800/50 rounded-full h-2">
-            <div class="h-2 rounded-full transition-all duration-1000 ease-out" 
+          <div class="w-full bg-slate-800/50 rounded-full h-1 md:h-1.5">
+            <div class="h-1 md:h-1.5 rounded-full transition-all duration-1000 ease-out" 
                  [ngStyle]="{'width': currentCoverage() + '%', 'background-color': getZoneColor(selectedZone)}"></div>
           </div>
         </div>
 
         <!-- Services Grid -->
-        <div class="border-t border-white/10 pt-3">
-          <h4 class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Services</h4>
-          <div class="grid grid-cols-2 gap-1.5 stagger-children">
-            <div class="bg-slate-800/30 p-2 rounded-lg border border-white/5 animate-slide-in-up hover:bg-slate-800/50 transition-colors">
-              <span class="block text-[9px] text-slate-500">🏥 Pharmacies</span>
-              <span class="font-bold text-white text-sm">{{ selectedZone.services.pharmacies }}</span>
+        <div class="border-t border-white/10 pt-1.5 md:pt-2">
+          <h4 class="text-[8px] md:text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1 md:mb-1.5">Services</h4>
+          <div class="grid grid-cols-2 gap-1 stagger-children">
+            <div class="bg-slate-800/30 p-1 md:p-1.5 rounded-lg border border-white/5 animate-slide-in-up hover:bg-slate-800/50 transition-colors">
+              <span class="block text-[8px] text-slate-500">🏥 Pharmacies</span>
+              <span class="font-bold text-white text-[11px] md:text-xs">{{ selectedZone.services.pharmacies }}</span>
             </div>
-            <div class="bg-slate-800/30 p-2 rounded-lg border border-white/5 animate-slide-in-up hover:bg-slate-800/50 transition-colors">
-              <span class="block text-[9px] text-slate-500">🏨 Hospitals</span>
-              <span class="font-bold text-white text-sm">{{ selectedZone.services.hospitals }}</span>
+            <div class="bg-slate-800/30 p-1 md:p-1.5 rounded-lg border border-white/5 animate-slide-in-up hover:bg-slate-800/50 transition-colors">
+              <span class="block text-[8px] text-slate-500">🏨 Hospitals</span>
+              <span class="font-bold text-white text-[11px] md:text-xs">{{ selectedZone.services.hospitals }}</span>
             </div>
-            <div class="bg-slate-800/30 p-2 rounded-lg border border-white/5 animate-slide-in-up hover:bg-slate-800/50 transition-colors">
-              <span class="block text-[9px] text-slate-500">🌳 Parks</span>
-              <span class="font-bold text-white text-sm">{{ selectedZone.services.parks }}</span>
+            <div class="bg-slate-800/30 p-1 md:p-1.5 rounded-lg border border-white/5 animate-slide-in-up hover:bg-slate-800/50 transition-colors">
+              <span class="block text-[8px] text-slate-500">🌳 Parks</span>
+              <span class="font-bold text-white text-[11px] md:text-xs">{{ selectedZone.services.parks }}</span>
             </div>
-            <div class="bg-slate-800/30 p-2 rounded-lg border border-white/5 animate-slide-in-up hover:bg-slate-800/50 transition-colors">
-              <span class="block text-[9px] text-slate-500">🏫 Schools</span>
-              <span class="font-bold text-white text-sm">{{ selectedZone.services.schools }}</span>
+            <div class="bg-slate-800/30 p-1 md:p-1.5 rounded-lg border border-white/5 animate-slide-in-up hover:bg-slate-800/50 transition-colors">
+              <span class="block text-[8px] text-slate-500">🏫 Schools</span>
+              <span class="font-bold text-white text-[11px] md:text-xs">{{ selectedZone.services.schools }}</span>
             </div>
           </div>
         </div>
@@ -224,41 +223,33 @@
     </div>
 
     <!-- ═══ AI Suggestion Card ═══ -->
-    <div *ngIf="currentAISuggestion()" class="glass-panel p-5 border-l-4 border-l-violet-500 rounded-xl animate-slide-in-up bg-gradient-to-br from-slate-800/90 to-slate-900/90">
-      <!-- Header -->
-      <div class="flex items-center gap-3 mb-4">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-          <span class="text-xl">🤖</span>
+    <div *ngIf="aiPanelI18n() as panel" class="glass-panel p-2.5 md:p-3 border-l-4 border-l-violet-500 rounded-xl animate-slide-in-up bg-gradient-to-br from-slate-800/90 to-slate-900/90">
+      <div class="flex items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2">
+        <div class="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20 shrink-0">
+          <span class="text-sm md:text-base">🤖</span>
         </div>
-        <div>
-          <p class="text-xs text-violet-400 font-semibold uppercase tracking-wider">{{ 'SUGGESTIONS.AI_SUGGESTION' | translate }}</p>
-          <p class="text-white font-bold text-sm">{{ currentAISuggestion()!.serviceType }}</p>
-        </div>
-      </div>
-
-      <!-- Title -->
-      <h4 class="text-white font-bold text-base mb-3 leading-tight">{{ currentAISuggestion()!.title }}</h4>
-
-      <!-- Impact Stats -->
-      <div class="grid grid-cols-2 gap-3 mb-4">
-        <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3">
-          <p class="text-emerald-400 text-xs font-semibold mb-1">📈 Impact</p>
-          <p class="text-white font-bold text-lg">+{{ currentAISuggestion()!.impactPercent }}%</p>
-        </div>
-        <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-          <p class="text-blue-400 text-xs font-semibold mb-1">👥 People Served</p>
-          <p class="text-white font-bold text-lg">{{ currentAISuggestion()!.populationServed | number }}</p>
+        <div class="min-w-0">
+          <p class="text-[9px] md:text-[10px] text-violet-400 font-semibold uppercase tracking-wider">{{ 'SUGGESTIONS.AI_SUGGESTION' | translate }}</p>
+          <p class="text-white font-bold text-[11px] md:text-xs truncate">{{ ('MAP.SERVICE_' + panel.suggestion.serviceTypeKey) | translate }}</p>
         </div>
       </div>
 
-      <!-- Description -->
-      <p class="text-slate-300 text-xs leading-relaxed mb-4">{{ currentAISuggestion()!.description }}</p>
+      <h4 class="text-white font-bold text-xs md:text-sm mb-1.5 md:mb-2 leading-snug line-clamp-2">{{ 'MAP.AI_TITLE' | translate: panel.titleParams }}</h4>
 
-      <!-- Zone Badge -->
-      <div class="flex items-center gap-2 pt-3 border-t border-white/10">
-        <span class="text-slate-400 text-xs">For zone:</span>
-        <span class="px-2 py-1 bg-violet-500/20 text-violet-300 text-xs rounded-full font-semibold">{{ selectedZone?.name }}</span>
+      <div class="grid grid-cols-2 gap-1.5 md:gap-2 mb-1.5 md:mb-2">
+        <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-1.5 md:p-2">
+          <p class="text-emerald-400 text-[9px] md:text-[10px] font-semibold mb-0">📈 {{ 'MAP.AI_IMPACT' | translate }}</p>
+          <p class="text-white font-bold text-sm md:text-base leading-tight">+{{ panel.suggestion.impactPercent }}%</p>
+        </div>
+        <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-1.5 md:p-2">
+          <p class="text-blue-400 text-[9px] md:text-[10px] font-semibold mb-0">👥 {{ 'MAP.AI_SERVED' | translate }}</p>
+          <p class="text-white font-bold text-sm md:text-base leading-tight">{{ panel.suggestion.populationServed | number:'1.0-0':'en-US' }}</p>
+        </div>
       </div>
+
+      <p class="text-slate-300 text-[10px] md:text-[11px] leading-snug line-clamp-2" [title]="(panel.suggestion.seniorCopy ? 'MAP.AI_DESC_SENIOR' : 'MAP.AI_DESC_NORMAL') | translate: panel.descParams">
+        {{ (panel.suggestion.seniorCopy ? 'MAP.AI_DESC_SENIOR' : 'MAP.AI_DESC_NORMAL') | translate: panel.descParams }}
+      </p>
     </div>
 
     <!-- Simple suggestion fallback for zones that have text-only suggestion -->
@@ -278,7 +269,7 @@
   </div>
 
   <!-- ═══ MOBILE/TABLET SIDE PANEL OVERLAY ═══ -->
-  <div *ngIf="showMobilePanel() && selectedZone" class="lg:hidden fixed inset-0 z-[999] bg-slate-900/98 p-3 overflow-y-auto">
+  <div *ngIf="showMobilePanel() && selectedZone" class="md:hidden fixed inset-0 z-[999] bg-slate-900/98 p-3 overflow-y-auto">
     <!-- Close Button -->
     <div class="flex justify-end mb-2">
       <button (click)="showMobilePanel.set(false)" class="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-white text-base">
@@ -294,7 +285,7 @@
       <div class="space-y-2 mb-3">
         <div class="flex justify-between items-center text-slate-300">
           <span class="flex items-center gap-2 text-sm">👥 Population</span>
-          <span class="font-bold text-white text-sm">{{ selectedZone.population | number }}</span>
+          <span class="font-bold text-white text-sm">{{ selectedZone.population | number:'1.0-0':'en-US' }}</span>
         </div>
         <div class="flex justify-between items-center text-slate-300">
           <span class="flex items-center gap-2 text-sm">🎯 Coverage</span>
