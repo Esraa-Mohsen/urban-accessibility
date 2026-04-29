@@ -26,6 +26,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     effect(() => {
       this.dataService.seniorMode();
       this.dataService.activeService();
+      this.zones = this.dataService.getZones();
       if (this.barChartInstance && this.pieChartInstance && this.lineChartInstance) {
         this.updateCharts();
       }

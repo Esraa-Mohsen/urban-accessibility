@@ -50,6 +50,25 @@ export interface CityReport {
   timestamp: string;
 }
 
+// Service Submission (Crowdsourcing)
+export interface ServiceSubmission {
+  id: string;
+  name: string;
+  nameEn?: string;
+  type: 'hospital' | 'pharmacy' | 'school' | 'park' | 'club' | 'mosque' |
+         'shop' | 'bank' | 'post_office' | 'fuel' | 'market' | 'supermarket';
+  coords: [number, number];
+  address?: string;
+  zoneId?: string;
+  /** `published` = visible community suggestion; legacy JSON may still have pending/approved/rejected. */
+  status: 'published' | 'pending' | 'approved' | 'rejected';
+  submittedBy: string;
+  submittedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  notes?: string;
+}
+
 export type AIServiceTypeKey = 'PHARMACY' | 'PARKS' | 'HOSPITALS';
 
 // AI Suggestion marker
@@ -465,6 +484,74 @@ export class DataService {
   // ═══ Fix My City reports ═══
   cityReports = signal<CityReport[]>([]);
 
+  // ═══ Service Submissions (Crowdsourcing) ═══
+  /** Read in UI `computed` / `effect` so map & dashboards refresh when submissions change. */
+  readonly serviceSubmissions = signal<ServiceSubmission[]>([]);
+
+  // Load submissions from localStorage on init
+  constructor() {
+    this.loadSubmissionsFromStorage();
+  }
+
+  private loadSubmissionsFromStorage() {
+    try {
+      const stored = localStorage.getItem('serviceSubmissions');
+      if (!stored) return;
+      const parsed: ServiceSubmission[] = JSON.parse(stored);
+      const normalized = parsed.map(s => ({
+        ...s,
+        status:
+          s.status === 'rejected'
+            ? ('rejected' as const)
+            : ('published' as const),
+      }));
+      this.serviceSubmissions.set(normalized);
+      this.saveSubmissionsToStorage();
+    } catch (e) {
+      console.error('Failed to load submissions from storage:', e);
+    }
+  }
+
+  private saveSubmissionsToStorage() {
+    try {
+      localStorage.setItem('serviceSubmissions', JSON.stringify(this.serviceSubmissions()));
+    } catch (e) {
+      console.error('Failed to save submissions to storage:', e);
+    }
+  }
+
+  submitService(submission: Omit<ServiceSubmission, 'id' | 'status' | 'submittedAt'>): ServiceSubmission {
+    const zoneId =
+      submission.zoneId ??
+      this.findZoneIdForCoords(submission.coords[0], submission.coords[1]);
+    const newSubmission: ServiceSubmission = {
+      ...submission,
+      zoneId,
+      id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      status: 'published',
+      submittedAt: new Date().toISOString(),
+    };
+
+    this.serviceSubmissions.update(subs => [...subs, newSubmission]);
+    this.saveSubmissionsToStorage();
+    return newSubmission;
+  }
+
+  getAllSubmissions(): ServiceSubmission[] {
+    return this.serviceSubmissions();
+  }
+
+  /** Zone disc containing the point (for optional labeling on submissions). */
+  private findZoneIdForCoords(lat: number, lng: number): string | undefined {
+    const z = this.mockZones.find(zone => this.isPointInsideZone(lat, lng, zone));
+    return z?.id;
+  }
+
+  deleteSubmission(id: string) {
+    this.serviceSubmissions.update(subs => subs.filter(s => s.id !== id));
+    this.saveSubmissionsToStorage();
+  }
+
   getZones(): Zone[] {
     return this.mockZones.map(z => {
       const c = this.getZoneServiceCounts(z.id);
@@ -709,7 +796,7 @@ export class DataService {
     return newReport;
   }
 
-  // ── Real Service Locations ──
+  // ── Official KML-backed service locations only (coverage & map Services layer) ──
   getRealServices(): ServiceLocation[] {
     return REAL_SERVICES;
   }
@@ -719,10 +806,9 @@ export class DataService {
   }
 
   getServicesByZone(zoneId: string): ServiceLocation[] {
-    // Calculate which services fall within each zone based on distance
     const zone = this.mockZones.find(z => z.id === zoneId);
     if (!zone) return [];
-    
+
     return REAL_SERVICES.filter(service => {
       const distance = this.calculateDistance(
         zone.coords[0], zone.coords[1],

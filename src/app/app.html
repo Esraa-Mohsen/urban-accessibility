@@ -121,6 +121,17 @@
             {{ 'SIDEBAR.DASHBOARD' | translate }}
           </span>
         </a>
+
+        <!-- Contribute -->
+        <a routerLink="/contribute" routerLinkActive="bg-emerald-500/15 text-emerald-400 !border-emerald-500/40"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-transparent text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-200"
+           [class.justify-center]="!sidebarOpen()"
+           [title]="!sidebarOpen() ? ('SIDEBAR.CONTRIBUTE' | translate) : ''">
+          <span class="text-xl shrink-0 leading-none">👥</span>
+          <span *ngIf="sidebarOpen()" class="text-sm font-medium whitespace-nowrap overflow-hidden">
+            {{ 'SIDEBAR.CONTRIBUTE' | translate }}
+          </span>
+        </a>
       </nav>
 
       <!-- Version -->

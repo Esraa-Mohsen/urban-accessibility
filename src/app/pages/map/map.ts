@@ -612,19 +612,17 @@ export class Map implements OnInit, AfterViewInit, OnDestroy {
       const color = iconColors[service.type] || '#64748b';
       const emoji = iconEmojis[service.type] || '📍';
 
-      // Create simple SVG icon
       const svgIcon = `
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
           <circle cx="16" cy="16" r="14" fill="${color}" stroke="white" stroke-width="2"/>
           <text x="16" y="21" font-size="14" text-anchor="middle">${emoji}</text>
-        </svg>
-      `;
+        </svg>`;
 
       const icon = L.divIcon({
         className: 'service-icon-marker',
         html: svgIcon,
         iconSize: [32, 32],
-        iconAnchor: [16, 16]
+        iconAnchor: [16, 16],
       });
 
       const marker = L.marker(service.coords, { icon }).addTo(this.map!);
