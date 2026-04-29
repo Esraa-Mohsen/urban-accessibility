@@ -140,7 +140,20 @@ export class Contribute implements OnDestroy {
       this.pickMap.removeLayer(this.pickMarker);
       this.pickMarker = undefined;
     }
-    this.pickMarker = L.marker(c).addTo(this.pickMap);
+    
+    // Create custom icon for the marker
+    const customIcon = L.divIcon({
+      className: 'custom-marker-icon',
+      html: `
+        <div style="position:relative;width:32px;height:32px;">
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:24px;">📍</div>
+        </div>
+      `,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+    
+    this.pickMarker = L.marker(c, { icon: customIcon }).addTo(this.pickMap);
     this.pickMap.setView(c, 16);
     setTimeout(() => this.pickMap?.invalidateSize(), 80);
   }
@@ -162,15 +175,14 @@ export class Contribute implements OnDestroy {
     }).addTo(this.pickMap);
 
     if (this.coords) {
-      this.pickMarker = L.marker(this.coords).addTo(this.pickMap);
+      this.syncPickMarker(this.coords);
     }
 
     this.pickMap.on('click', (e: L.LeafletMouseEvent) => {
       const ll = e.latlng;
       this.ngZone.run(() => {
         this.coords = [ll.lat, ll.lng];
-        if (this.pickMarker) this.pickMap!.removeLayer(this.pickMarker);
-        this.pickMarker = L.marker([ll.lat, ll.lng]).addTo(this.pickMap!);
+        this.syncPickMarker([ll.lat, ll.lng]);
         this.geoMessage.set(null);
       });
     });
