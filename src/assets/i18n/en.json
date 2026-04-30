@@ -57,7 +57,7 @@
     "HOSPITALS": "Avg Hospital Coverage",
     "POPULATION": "Total Population",
     "POP_COVERAGE": "Population",
-    "ACCESS_SCORE": "Accessibility Score",
+    "ACCESS_SCORE": "Total Service Coverage",
     "ACROSS_ZONES": "Across all zones",
     "COVERAGE": "Coverage",
     "LIVE_UPDATE": "Live update",

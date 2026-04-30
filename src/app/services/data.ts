@@ -211,8 +211,8 @@ export const ZONE_BOUNDARIES: ZoneBoundary[] = [
   },
   {
     id: 'zb4',
-    name: 'أبو عطوة (نطاق الحي)',
-    nameEn: 'Abu Atowa',
+    name: 'الحكر (نطاق الحي)',
+    nameEn: 'Al Hekr',
     population: 25000,
     areaKm2: 2.5,
     density: 10000,
@@ -250,7 +250,7 @@ export const BUILDING_BLOCKS: BuildingBlock[] = [
   { id: 'b4', zoneId: 'zb1', name: 'بلوك 4', coords: [30.599, 32.274], population: 2500, buildingCount: 20, floorCount: 12, type: 'residential' },
   { id: 'b5', zoneId: 'zb1', name: 'بلوك 5', coords: [30.602, 32.273], population: 1900, buildingCount: 16, floorCount: 8, type: 'residential' },
   
-  // حي السلام blocks
+  // الحكر blocks (moved from Al Salam location)
   { id: 'b6', zoneId: 'zb2', name: 'بلوك أ', coords: [30.605, 32.275], population: 2800, buildingCount: 22, floorCount: 10, type: 'residential' },
   { id: 'b7', zoneId: 'zb2', name: 'بلوك ب', coords: [30.608, 32.277], population: 3200, buildingCount: 25, floorCount: 12, type: 'residential' },
   { id: 'b8', zoneId: 'zb2', name: 'بلوك ج', coords: [30.603, 32.278], population: 2100, buildingCount: 18, floorCount: 8, type: 'residential' },
@@ -262,13 +262,13 @@ export const BUILDING_BLOCKS: BuildingBlock[] = [
   { id: 'b12', zoneId: 'zb3', name: 'بلوك 2', coords: [30.589, 32.260], population: 1800, buildingCount: 14, floorCount: 6, type: 'residential' },
   { id: 'b13', zoneId: 'zb3', name: 'بلوك 3', coords: [30.591, 32.256], population: 1500, buildingCount: 12, floorCount: 6, type: 'residential' },
   
-  // أبو عطوة blocks
+  // حي السلام blocks (moved to Abu Atwa location)
   { id: 'b14', zoneId: 'zb4', name: 'بلوك 1', coords: [30.614, 32.263], population: 1200, buildingCount: 10, floorCount: 5, type: 'residential' },
   { id: 'b15', zoneId: 'zb4', name: 'بلوك 2', coords: [30.612, 32.267], population: 900, buildingCount: 8, floorCount: 4, type: 'residential' },
   
   // منطقة المستشفى العام blocks
-  { id: 'b16', zoneId: 'zb5', name: 'بلوك أ', coords: [30.611, 32.283], population: 800, buildingCount: 6, floorCount: 5, type: 'residential' },
-  { id: 'b17', zoneId: 'zb5', name: 'بلوك ب', coords: [30.609, 32.287], population: 650, buildingCount: 5, floorCount: 4, type: 'residential' }
+  { id: 'b19', zoneId: 'zb5', name: 'بلوك أ', coords: [30.611, 32.283], population: 800, buildingCount: 6, floorCount: 5, type: 'residential' },
+  { id: 'b20', zoneId: 'zb5', name: 'بلوك ب', coords: [30.609, 32.287], population: 650, buildingCount: 5, floorCount: 4, type: 'residential' }
 ];
 
 // ═══ ROAD NETWORK (Placeholders) ═══
@@ -327,7 +327,7 @@ export const PUBLIC_PLACES: PublicPlace[] = [
   // Restaurants & Cafes
   { id: 'rest1', name: 'كشري التحرير', type: 'restaurant', coords: [30.5995, 32.2715], address: 'شارع أحمد عرابي' },
   { id: 'rest2', name: 'مطعم السلام', type: 'restaurant', coords: [30.6050, 32.2755], address: 'شارع السلام' },
-  { id: 'cafe1', name: 'كافيه أبو عطوة', type: 'cafe', coords: [30.6130, 32.2655], address: 'شارع أبو عطوة' },
+  { id: 'cafe1', name: 'كافيه الحكر', type: 'cafe', coords: [30.6130, 32.2655], address: 'شارع الحكر' },
   { id: 'cafe2', name: 'الكافية', type: 'cafe', coords: [30.5980, 32.2700], address: 'ميدان عرايشية' }
 ];
 
@@ -455,10 +455,11 @@ export class DataService {
       status: 'excellent'
     },
     {
-      id: 'z2', name: 'حي السلام', color: '#f59e0b',
+      id: 'z2', name: 'الحكر', color: '#f59e0b',
       coords: [30.6050, 32.2750], radius: 1000, population: 90000, baseCoverage: 68,
-      services: { pharmacies: 12, hospitals: 4, parks: 1, schools: 14 },
-      status: 'good'
+      services: { pharmacies: 3, hospitals: 1, parks: 0, schools: 3 },
+      status: 'critical',
+      suggestion: 'يحتاج إلى صيدلية وحديقة عامة'
     },
     {
       id: 'z3', name: 'الشهداء', color: '#f59e0b',
@@ -467,11 +468,10 @@ export class DataService {
       status: 'limited'
     },
     {
-      id: 'z4', name: 'أبو عطوة', color: '#f97316',
+      id: 'z4', name: 'حي السلام', color: '#f97316',
       coords: [30.6140, 32.2650], radius: 800, population: 25000, baseCoverage: 35,
-      services: { pharmacies: 3, hospitals: 1, parks: 0, schools: 3 },
-      status: 'critical',
-      suggestion: 'يحتاج إلى صيدلية وحديقة عامة'
+      services: { pharmacies: 12, hospitals: 4, parks: 1, schools: 14 },
+      status: 'good'
     },
     {
       id: 'z5', name: 'منطقة المستشفى العام', color: '#10b981',
